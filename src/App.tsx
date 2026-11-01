@@ -23,12 +23,25 @@ import { PictureMatrixEditor } from './components/PictureMatrixEditor';
 import { AudioMasterEditor } from './components/AudioMasterEditor';
 import { ScriptStoryboardEditor } from './components/ScriptStoryboardEditor';
 import { TierVerificationModal } from './components/TierVerificationModal';
+import { NchMasterSuiteLauncher } from './components/NchMasterSuiteLauncher';
+import { StorageIngestView } from './components/StorageIngestView';
+import { GoogleDriveConnectorModal } from './components/GoogleDriveConnectorModal';
+import { ThreeDCinemaShuffler } from './components/ThreeDCinemaShuffler';
+import { VortexIconCutoutModal } from './components/VortexIconCutoutModal';
+import { KnocksStudioCenterStage } from './components/KnocksStudioCenterStage';
 import { audioEngine } from './utils/audioEngine';
 
 export default function App() {
-  // Splash & HUD Mode
-  const [showSplash, setShowSplash] = useState<boolean>(true);
+  // Master Workspace Mode: 'showcase' (the exact cinematic layout from user video) or 'pro_nle'
+  const [workspaceMode, setWorkspaceMode] = useState<'showcase' | 'pro_nle'>('showcase');
+
+  // Splash & HUD Mode (Defaulting to false so user's HTML layout displays directly)
+  const [showSplash, setShowSplash] = useState<boolean>(false);
+
   const [autoHideHUD, setAutoHideHUD] = useState<boolean>(false);
+  const [isDriveModalOpen, setIsDriveModalOpen] = useState<boolean>(false);
+  const [isImmersiveFullTile, setIsImmersiveFullTile] = useState<boolean>(false);
+  const [isIconModalOpen, setIsIconModalOpen] = useState<boolean>(false);
   const [isTopHovered, setIsTopHovered] = useState<boolean>(false);
   const [isBottomHovered, setIsBottomHovered] = useState<boolean>(false);
   const [isLeftHovered, setIsLeftHovered] = useState<boolean>(false);
@@ -37,6 +50,7 @@ export default function App() {
   // Active Medium & Dual View
   const [activeMedium, setActiveMedium] = useState<MediaMedium>('video');
   const [dualView, setDualView] = useState<DualEngineView>('split');
+
   const [aspectRatio, setAspectRatio] = useState<AspectRatioType>('imax_1.43');
 
   // Subscription Tier & Modal
@@ -257,6 +271,20 @@ export default function App() {
     return () => cancelAnimationFrame(animId);
   }, [isPlaying]);
 
+  // Keyboard shortcut listener (ESC to exit full tile or close modals)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (isIconModalOpen) setIsIconModalOpen(false);
+        if (isDriveModalOpen) setIsDriveModalOpen(false);
+        if (isTierModalOpen) setIsTierModalOpen(false);
+        if (isImmersiveFullTile) setIsImmersiveFullTile(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isIconModalOpen, isDriveModalOpen, isTierModalOpen, isImmersiveFullTile]);
+
   // Toggle Playback
   const handleTogglePlay = () => {
     audioEngine.init();
@@ -413,172 +441,231 @@ export default function App() {
         />
       )}
 
-      {/* 2. TOP TELEMETRY STATUS HUB (With auto-hide HUD capability) */}
-      <div
-        onMouseEnter={() => setIsTopHovered(true)}
-        onMouseLeave={() => setIsTopHovered(false)}
-        className={`transition-all duration-300 z-30 shrink-0 ${
-          autoHideHUD && !isTopHovered ? '-mt-16 opacity-30 hover:mt-0 hover:opacity-100' : ''
-        }`}
-      >
-        <TopTelemetryHub
-          activeMedium={activeMedium}
-          onSelectMedium={(m) => setActiveMedium(m)}
-          dualView={dualView}
-          onChangeDualView={(v) => setDualView(v)}
-          currentTier={currentTier}
+      {/* 2. DYNAMIC WORKSPACE: SHOWCASE HERO MODE OR PRO NLE WORKSPACE */}
+      {workspaceMode === 'showcase' ? (
+        <KnocksStudioCenterStage
+          onSelectMedium={(m) => {
+            setActiveMedium(m);
+            if (m === 'nch_suite') {
+              setActiveMedium('nch_suite');
+              setWorkspaceMode('pro_nle');
+            } else {
+              setWorkspaceMode('pro_nle');
+            }
+          }}
+          onOpenGoogleDrive={() => setIsDriveModalOpen(true)}
+          onOpenIconModal={() => setIsIconModalOpen(true)}
           onOpenTierModal={() => setIsTierModalOpen(true)}
-          telemetry={telemetry}
-          onToggleTerminal={() => setIsTerminalOpen(!isTerminalOpen)}
-          isTerminalOpen={isTerminalOpen}
-          autoHideEnabled={autoHideHUD}
-          onToggleAutoHide={() => setAutoHideHUD(!autoHideHUD)}
-          onOpenSplash={() => setShowSplash(true)}
+          onToggleImmersiveFullTile={() => setIsImmersiveFullTile(true)}
+          onSwitchToProNLE={() => setWorkspaceMode('pro_nle')}
+          onExecuteCommand={handleExecuteCommand}
         />
-      </div>
-
-      {/* 3. DUAL-ENGINE WORKSPACE (Generator + Corresponding Pro Editor) */}
-      <div className="flex-1 flex overflow-hidden relative">
-        {/* LEFT: AI Generator Tool Dock (auto-hides if enabled & in editor-focus) */}
-        {dualView !== 'editor-focus' && (
+      ) : (
+        <>
+          {/* TOP TELEMETRY STATUS HUB (With auto-hide HUD capability) */}
           <div
-            onMouseEnter={() => setIsLeftHovered(true)}
-            onMouseLeave={() => setIsLeftHovered(false)}
-            className={`transition-all duration-300 shrink-0 z-20 ${
-              autoHideHUD && !isLeftHovered ? '-ml-72 opacity-20 hover:ml-0 hover:opacity-100' : ''
+            onMouseEnter={() => setIsTopHovered(true)}
+            onMouseLeave={() => setIsTopHovered(false)}
+            className={`transition-all duration-300 z-30 shrink-0 ${
+              autoHideHUD && !isTopHovered ? '-mt-16 opacity-30 hover:mt-0 hover:opacity-100' : ''
             }`}
           >
-            <LeftToolDock
+            <TopTelemetryHub
               activeMedium={activeMedium}
-              onSynthesizeClip={(clip) => setClips((prev) => [...prev, clip])}
-              onSelectSourceClip={(title) => setSourceClipTitle(title)}
+              onSelectMedium={(m) => setActiveMedium(m)}
+              dualView={dualView}
+              onChangeDualView={(v) => setDualView(v)}
+              currentTier={currentTier}
+              onOpenTierModal={() => setIsTierModalOpen(true)}
+              telemetry={telemetry}
+              onToggleTerminal={() => setIsTerminalOpen(!isTerminalOpen)}
+              isTerminalOpen={isTerminalOpen}
+              autoHideEnabled={autoHideHUD}
+              onToggleAutoHide={() => setAutoHideHUD(!autoHideHUD)}
+              onOpenSplash={() => setShowSplash(true)}
+              onOpenGoogleDrive={() => setIsDriveModalOpen(true)}
+              isImmersiveFullTile={isImmersiveFullTile}
+              onToggleImmersiveFullTile={() => setIsImmersiveFullTile(!isImmersiveFullTile)}
+              onOpenIconModal={() => setIsIconModalOpen(true)}
+              workspaceMode={workspaceMode}
+              onToggleWorkspaceMode={() => setWorkspaceMode('showcase')}
             />
           </div>
-        )}
 
-        {/* CENTER: Dual Monitor Workspace + Active Medium Specific Pro Editor */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          {/* Active Medium Viewport / Editor Display */}
-          {activeMedium === 'video' && (
-            <DualMonitorWorkspace
-              isPlaying={isPlaying}
-              onTogglePlay={handleTogglePlay}
-              aspectRatio={aspectRatio}
-              onChangeAspectRatio={(ar) => setAspectRatio(ar)}
-              colorGrade={colorGrade}
-              currentPlayheadSec={currentPlayheadSec}
-              onSeek={(s) => setCurrentPlayheadSec(s)}
-              sourceClipTitle={sourceClipTitle}
-              programClipTitle={programClipTitle}
-              onInsertClip={handleInsertClip}
-              onOverwriteClip={handleOverwriteClip}
-            />
-          )}
+          {/* DUAL-ENGINE WORKSPACE (Generator + Corresponding Pro Editor) */}
+          <div className="flex-1 flex overflow-hidden relative">
+            {/* LEFT: AI Generator Tool Dock (auto-hides if enabled & in editor-focus) */}
+            {dualView !== 'editor-focus' && (
+              <div
+                onMouseEnter={() => setIsLeftHovered(true)}
+                onMouseLeave={() => setIsLeftHovered(false)}
+                className={`transition-all duration-300 shrink-0 z-20 ${
+                  autoHideHUD && !isLeftHovered ? '-ml-72 opacity-20 hover:ml-0 hover:opacity-100' : ''
+                }`}
+              >
+                <LeftToolDock
+                  activeMedium={activeMedium}
+                  onSynthesizeClip={(clip) => setClips((prev) => [...prev, clip])}
+                  onSelectSourceClip={(title) => setSourceClipTitle(title)}
+                />
+              </div>
+            )}
 
-          {activeMedium === 'mesh3d' && (
-            <ThreeDViewport
-              config={meshConfig}
-              onChangeConfig={(newCfg) => setMeshConfig((prev) => ({ ...prev, ...newCfg }))}
-            />
-          )}
+            {/* CENTER: Dual Monitor Workspace + Active Medium Specific Pro Editor */}
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+              {/* Active Medium Viewport / Editor Display */}
+              {activeMedium === 'nch_suite' && (
+                <NchMasterSuiteLauncher
+                  onLaunchApp={(tile) => {
+                    handleExecuteCommand(`nch launch "${tile.name}" [${tile.subTitle}]`);
+                  }}
+                  onSelectMedium={(m) => setActiveMedium(m)}
+                  onOpenTierModal={() => setIsTierModalOpen(true)}
+                  onExecuteCommand={handleExecuteCommand}
+                />
+              )}
 
-          {activeMedium === 'picture' && (
-            <PictureMatrixEditor
-              colorGrade={colorGrade}
-              onChangeColorGrade={(newGrade) => setColorGrade((prev) => ({ ...prev, ...newGrade }))}
-              onResetGrade={() =>
-                setColorGrade({
-                  lift: 0,
-                  gamma: 0,
-                  gain: 0,
-                  exposure: 0,
-                  contrast: 100,
-                  saturation: 100,
-                  temperature: 0,
-                  tint: 0,
-                  bwConversion: false,
-                  vintageMatrix: 'none',
-                  pencilSketchMode: false,
-                  pencilHatchDensity: 10,
-                  pencilLineWeight: 1.5,
-                })
-              }
-            />
-          )}
+              {activeMedium === 'storage' && (
+                <StorageIngestView
+                  onExecuteCommand={handleExecuteCommand}
+                  onOpenGoogleDrive={() => setIsDriveModalOpen(true)}
+                />
+              )}
 
-          {activeMedium === 'audio' && (
-            <AudioMasterEditor
-              audioState={audioState}
-              onChangeAudioState={(newState) => setAudioState((prev) => ({ ...prev, ...newState }))}
-              onUpdateEqBand={handleUpdateEqBand}
-            />
-          )}
+              {activeMedium === 'cinema' && (
+                <ThreeDCinemaShuffler
+                  isImmersiveActive={isImmersiveFullTile}
+                  onToggleImmersive={() => setIsImmersiveFullTile(!isImmersiveFullTile)}
+                  onSelectScene={(sceneTitle) => {
+                    setSourceClipTitle(sceneTitle);
+                    handleExecuteCommand(`select 24/7 scene "${sceneTitle}"`);
+                  }}
+                />
+              )}
 
-          {activeMedium === 'content' && (
-            <ScriptStoryboardEditor
-              scenes={storyScenes}
-              onAddScene={() =>
-                setStoryScenes((prev) => [
-                  ...prev,
-                  {
-                    id: 'sc_' + Date.now(),
-                    sceneNumber: prev.length + 1,
-                    slugline: 'INT. COMMAND CORE - NIGHT',
-                    description: 'New cinematic beat synthesized into screenplay timeline.',
-                    dialogue: 'All systems green.',
-                    character: 'NAVIGATOR',
-                    phonemes: 'AW L SI S TE M Z',
-                    shotType: 'Medium',
-                    lensFocal: '35mm Prime',
-                    durationSec: 4.0,
-                  },
-                ])
-              }
-              onUpdateScene={(id, updated) =>
-                setStoryScenes((prev) => prev.map((s) => (s.id === id ? { ...s, ...updated } : s)))
-              }
-              onDeleteScene={(id) => setStoryScenes((prev) => prev.filter((s) => s.id !== id))}
-            />
-          )}
-        </div>
+              {activeMedium === 'video' && (
+                <DualMonitorWorkspace
+                  isPlaying={isPlaying}
+                  onTogglePlay={handleTogglePlay}
+                  aspectRatio={aspectRatio}
+                  onChangeAspectRatio={(ar) => setAspectRatio(ar)}
+                  colorGrade={colorGrade}
+                  currentPlayheadSec={currentPlayheadSec}
+                  onSeek={(s) => setCurrentPlayheadSec(s)}
+                  sourceClipTitle={sourceClipTitle}
+                  programClipTitle={programClipTitle}
+                  onInsertClip={handleInsertClip}
+                  onOverwriteClip={handleOverwriteClip}
+                />
+              )}
 
-        {/* RIGHT: Inspector & Local CLI Terminal Output */}
-        {isTerminalOpen && (
+              {activeMedium === 'mesh3d' && (
+                <ThreeDViewport
+                  config={meshConfig}
+                  onChangeConfig={(newCfg) => setMeshConfig((prev) => ({ ...prev, ...newCfg }))}
+                />
+              )}
+
+              {activeMedium === 'picture' && (
+                <PictureMatrixEditor
+                  colorGrade={colorGrade}
+                  onChangeColorGrade={(newGrade) => setColorGrade((prev) => ({ ...prev, ...newGrade }))}
+                  onResetGrade={() =>
+                    setColorGrade({
+                      lift: 0,
+                      gamma: 0,
+                      gain: 0,
+                      exposure: 0,
+                      contrast: 100,
+                      saturation: 100,
+                      temperature: 0,
+                      tint: 0,
+                      bwConversion: false,
+                      vintageMatrix: 'none',
+                      pencilSketchMode: false,
+                      pencilHatchDensity: 10,
+                      pencilLineWeight: 1.5,
+                    })
+                  }
+                />
+              )}
+
+              {activeMedium === 'audio' && (
+                <AudioMasterEditor
+                  audioState={audioState}
+                  onChangeAudioState={(newState) => setAudioState((prev) => ({ ...prev, ...newState }))}
+                  onUpdateEqBand={handleUpdateEqBand}
+                />
+              )}
+
+              {activeMedium === 'content' && (
+                <ScriptStoryboardEditor
+                  scenes={storyScenes}
+                  onAddScene={() =>
+                    setStoryScenes((prev) => [
+                      ...prev,
+                      {
+                        id: 'sc_' + Date.now(),
+                        sceneNumber: prev.length + 1,
+                        slugline: 'INT. COMMAND CORE - NIGHT',
+                        description: 'New cinematic beat synthesized into screenplay timeline.',
+                        dialogue: 'All systems green.',
+                        character: 'NAVIGATOR',
+                        phonemes: 'AW L SI S TE M Z',
+                        shotType: 'Medium',
+                        lensFocal: '35mm Prime',
+                        durationSec: 4.0,
+                      },
+                    ])
+                  }
+                  onUpdateScene={(id, updated) =>
+                    setStoryScenes((prev) => prev.map((s) => (s.id === id ? { ...s, ...updated } : s)))
+                  }
+                  onDeleteScene={(id) => setStoryScenes((prev) => prev.filter((s) => s.id !== id))}
+                />
+              )}
+            </div>
+
+            {/* RIGHT: Inspector & Local CLI Terminal Output */}
+            {isTerminalOpen && (
+              <div
+                onMouseEnter={() => setIsRightHovered(true)}
+                onMouseLeave={() => setIsRightHovered(false)}
+                className={`transition-all duration-300 shrink-0 z-20 ${
+                  autoHideHUD && !isRightHovered ? '-mr-72 opacity-20 hover:mr-0 hover:opacity-100' : ''
+                }`}
+              >
+                <RightInspectorPanel
+                  telemetry={telemetry}
+                  logs={logs}
+                  onExecuteCommand={handleExecuteCommand}
+                  onClearLogs={() => setLogs([])}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* BOTTOM: Multi-Track NLE Timeline, Audio Mixer & Lip-Sync Waveform */}
           <div
-            onMouseEnter={() => setIsRightHovered(true)}
-            onMouseLeave={() => setIsRightHovered(false)}
-            className={`transition-all duration-300 shrink-0 z-20 ${
-              autoHideHUD && !isRightHovered ? '-mr-72 opacity-20 hover:mr-0 hover:opacity-100' : ''
+            onMouseEnter={() => setIsBottomHovered(true)}
+            onMouseLeave={() => setIsBottomHovered(false)}
+            className={`transition-all duration-300 shrink-0 z-30 ${
+              autoHideHUD && !isBottomHovered ? '-mb-56 opacity-20 hover:mb-0 hover:opacity-100' : ''
             }`}
           >
-            <RightInspectorPanel
-              telemetry={telemetry}
-              logs={logs}
-              onExecuteCommand={handleExecuteCommand}
-              onClearLogs={() => setLogs([])}
+            <BottomNLEWorkspace
+              clips={clips}
+              currentPlayheadSec={currentPlayheadSec}
+              onSeek={(sec) => setCurrentPlayheadSec(sec)}
+              isPlaying={isPlaying}
+              onSplitClipAtPlayhead={handleSplitClipAtPlayhead}
+              onDeleteSelectedClip={handleDeleteClip}
+              onAddClipToTrack={handleAddClipToTrack}
             />
           </div>
-        )}
-      </div>
+        </>
+      )}
 
-      {/* 4. BOTTOM: Multi-Track NLE Timeline, Audio Mixer & Lip-Sync Waveform */}
-      <div
-        onMouseEnter={() => setIsBottomHovered(true)}
-        onMouseLeave={() => setIsBottomHovered(false)}
-        className={`transition-all duration-300 shrink-0 z-30 ${
-          autoHideHUD && !isBottomHovered ? '-mb-56 opacity-20 hover:mb-0 hover:opacity-100' : ''
-        }`}
-      >
-        <BottomNLEWorkspace
-          clips={clips}
-          currentPlayheadSec={currentPlayheadSec}
-          onSeek={(sec) => setCurrentPlayheadSec(sec)}
-          isPlaying={isPlaying}
-          onSplitClipAtPlayhead={handleSplitClipAtPlayhead}
-          onDeleteSelectedClip={handleDeleteClip}
-          onAddClipToTrack={handleAddClipToTrack}
-        />
-      </div>
 
       {/* 5. TIER VERIFICATION & CRYPTOGRAPHIC ACCESS MODAL */}
       <TierVerificationModal
@@ -590,6 +677,108 @@ export default function App() {
           handleExecuteCommand(`activate tier "${tierId.toUpperCase()}" with signature verified`);
         }}
       />
+
+      {/* 6. GOOGLE DRIVE WORKSPACE CONNECTOR MODAL */}
+      <GoogleDriveConnectorModal
+        isOpen={isDriveModalOpen}
+        onClose={() => setIsDriveModalOpen(false)}
+        onImportToTimeline={(clip) => {
+          setClips((prev) => [...prev, clip]);
+          handleExecuteCommand(`import gdrive take "${clip.title}" to track ${clip.trackId}`);
+        }}
+        onLoadToSourceMonitor={(title) => {
+          setSourceClipTitle(title);
+          handleExecuteCommand(`load to source monitor "${title}"`);
+        }}
+        onExecuteCommand={handleExecuteCommand}
+      />
+
+      {/* 7. VORTEX 7 UNIVERSAL ICON CUTOUT & MULTI-PLATFORM DEPLOY MODAL */}
+      <VortexIconCutoutModal
+        isOpen={isIconModalOpen}
+        onClose={() => setIsIconModalOpen(false)}
+      />
+
+      {/* 8. THREE.JS 24/7 FULL-TILE SHUFFLE CINEMA (All hides to hover of mouse or touch of screen) */}
+      {isImmersiveFullTile && (
+        <div className="fixed inset-0 z-40 bg-[#050608] flex items-center justify-center overflow-hidden">
+          <ThreeDCinemaShuffler
+            isImmersiveActive={true}
+            onToggleImmersive={() => setIsImmersiveFullTile(false)}
+            onSelectScene={(title) => {
+              setSourceClipTitle(title);
+              handleExecuteCommand(`select 24/7 scene "${title}"`);
+            }}
+          />
+
+          {/* Auto-Hiding HUD Overlay: Fully transparent (opacity-0) until hover of mouse or touch of screen */}
+          <div className="absolute inset-0 pointer-events-none opacity-0 hover:opacity-100 active:opacity-100 focus-within:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-6 z-50">
+            {/* Top Hover Header */}
+            <div className="flex items-center justify-between pointer-events-auto">
+              <div className="flex items-center gap-3 bg-[#0A0B0E]/90 border border-[#2D3342] px-3.5 py-2 rounded-xs backdrop-blur-md shadow-2xl">
+                <div className="w-2.5 h-2.5 rounded-full bg-[#E0FFFF] shadow-[0_0_8px_#E0FFFF] animate-ping" />
+                <div className="flex items-baseline gap-2">
+                  <span className="font-extrabold text-sm text-gradient-chrome tracking-wider">
+                    KNOCKSSTUDiOS
+                  </span>
+                  <span className="text-[10px] text-[#FFDAB9] font-mono">[24/7 FULL-TILE CINEMA]</span>
+                  <span className="text-[10px] text-[#E0FFFF] border border-[#E0FFFF]/30 px-1.5 py-0.2 rounded-xs font-mono">
+                    HOLLYWOOD MOTiON PiCTURES
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => setIsDriveModalOpen(true)}
+                  className="px-3.5 py-1.5 bg-[#141722]/95 border border-[#FFDAB9]/60 text-[#FFDAB9] rounded-xs text-xs font-mono font-bold cursor-pointer hover:bg-[#1E2434] backdrop-blur-md shadow-[0_0_10px_rgba(255,218,185,0.25)] flex items-center gap-2"
+                >
+                  <span className="w-2 h-2 rounded-full bg-[#FFDAB9]" />
+                  <span>BROWSE GOOGLE DRIVE ASSETS</span>
+                </button>
+
+                <button
+                  onClick={() => setIsImmersiveFullTile(false)}
+                  className="px-4 py-1.5 bg-gradient-to-r from-[#FFDAB9] to-[#FC8EAC] text-[#0A0A0A] font-extrabold rounded-xs text-xs font-mono cursor-pointer shadow-[0_0_15px_rgba(255,218,185,0.4)] hover:brightness-110"
+                >
+                  EXIT FULL TILE [ESC]
+                </button>
+              </div>
+            </div>
+
+            {/* Central Notice (Fades gently, indicates hover/touch behavior) */}
+            <div className="self-center text-center space-y-1">
+              <div className="inline-block px-3 py-1 bg-[#0A0B0E]/80 border border-[#2D3342] rounded-xs text-[10px] text-[#E0FFFF] font-mono tracking-widest backdrop-blur-sm">
+                24/7 LIVE SHUFFLE ACTIVE · ALL CONTROLS HIDE TO HOVER / TOUCH
+              </div>
+            </div>
+
+            {/* Bottom Quick Controls */}
+            <div className="flex items-center justify-between pointer-events-auto bg-[#0A0B0E]/80 border border-[#262C3A] p-2.5 rounded-xs backdrop-blur-md text-xs font-mono">
+              <span className="text-[11px] text-[#8E99A8]">
+                HOVER SCREEN EDGES OR TOUCH TO REVEAL FULL NAVIGATION DOCKS
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    handleInsertClip();
+                    handleExecuteCommand('inserted current 24/7 scene frame into timeline V1');
+                  }}
+                  className="px-3 py-1 bg-[#1E2536] border border-[#E0FFFF]/40 text-[#E0FFFF] rounded-xs cursor-pointer hover:bg-[#283248] text-[11px]"
+                >
+                  + SNAPSHOT TO TIMELINE V1
+                </button>
+                <button
+                  onClick={() => setIsImmersiveFullTile(false)}
+                  className="px-3 py-1 bg-[#161922] border border-[#3A4356] text-[#A6B0BE] rounded-xs cursor-pointer hover:text-[#F5FFFA] text-[11px]"
+                >
+                  DOCK STUDIO
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

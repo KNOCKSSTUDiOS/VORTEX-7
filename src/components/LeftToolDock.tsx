@@ -99,6 +99,8 @@ export const LeftToolDock: React.FC<LeftToolDockProps> = ({
               ? 'V2'
               : activeMedium === 'mesh3d'
               ? 'V1'
+              : activeMedium === 'storage'
+              ? 'FX'
               : 'LIP';
 
           const newClip: TimelineClip = {
@@ -113,7 +115,12 @@ export const LeftToolDock: React.FC<LeftToolDockProps> = ({
                 ? 'CREYA_MATRIX_FRAME'
                 : activeMedium === 'mesh3d'
                 ? 'TRACKED_LIFE_MESH'
+                : activeMedium === 'storage'
+                ? 'CLOUD_DRIVE_INGEST_TAKE'
+                : activeMedium === 'nch_suite'
+                ? 'KNOCKS_MASTER_SUITE_ASSET'
                 : 'SCRIPT_BEAT_VISEME',
+
             startSec: 12.0,
             durationSec: 5.0,
             color:
@@ -123,6 +130,8 @@ export const LeftToolDock: React.FC<LeftToolDockProps> = ({
                 ? '#FFDAB9'
                 : activeMedium === 'picture'
                 ? '#E0FFFF'
+                : activeMedium === 'storage'
+                ? '#00F5D4'
                 : '#8A2BE2',
             visemePhoneme: activeMedium === 'content' ? 'AA EE OH UH' : undefined,
           };
@@ -424,6 +433,31 @@ export const LeftToolDock: React.FC<LeftToolDockProps> = ({
                 </div>
                 <div className="text-[11px] text-[#8E99A8]">
                   Automated Phoneme Viseme tagging enabled: speech will generate corresponding facial mesh phoneme curves for the Lip-Sync track.
+                </div>
+              </div>
+            )}
+
+            {/* KNOCKS MASTER SUITE QUICK CONTROLS */}
+            {activeMedium === 'nch_suite' && (
+              <div className="space-y-3">
+                <div className="p-2.5 bg-[#0B0D11] border border-[#262B37] rounded-xs space-y-1.5">
+                  <span className="text-[#FFDAB9] font-bold block text-[11px]">KNOCKS MASTER SUITE (40+ APPS)</span>
+                  <p className="text-[10px] text-[#8E99A8]">
+                    Click any application tile in the central launcher to immediately open WaveStorm, MixVortex, PhotoMatrix, PadEdit, or 3D Rigging.
+                  </p>
+                </div>
+              </div>
+            )}
+
+
+            {/* STORAGE & INGESTION QUICK CONTROLS */}
+            {activeMedium === 'storage' && (
+              <div className="space-y-3">
+                <div className="p-2.5 bg-[#0B0D11] border border-[#262B37] rounded-xs space-y-1.5">
+                  <span className="text-[#E0FFFF] font-bold block text-[11px]">TRANSFER &amp; REPOSITORY INGEST</span>
+                  <p className="text-[10px] text-[#8E99A8]">
+                    Google Drive, Copper FTP, SQLite database sweeping, and MCP server connectors are active.
+                  </p>
                 </div>
               </div>
             )}

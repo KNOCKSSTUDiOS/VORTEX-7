@@ -143,12 +143,13 @@ export const StartupSplash: React.FC<StartupSplashProps> = ({
                 KNOCKSSTUDiOS
               </span>
               <span className="text-[10px] tracking-widest text-[#FFDAB9] font-mono border border-[#FFDAB9]/30 px-1.5 py-0.2 rounded-xs">
-                CINEMA &amp; FX
+                HOLLYWOOD MOTiON PiCTURES
               </span>
             </div>
             <div className="text-[11px] text-[#A6B0BE] tracking-tight font-mono">
-              LOCAL-FIRST DUAL ENGINE · TEMPEST PIPELINE · INFINITY CORE
+              KNOCKSSTUDiOS MASTER SUITE · AUDIO, PICTURE, VIDEO PLUS &amp; UPLOADS · INFINITY CORE
             </div>
+
           </div>
         </div>
 
@@ -282,8 +283,8 @@ export const StartupSplash: React.FC<StartupSplashProps> = ({
         </div>
       </main>
 
-      {/* Bottom Ambient Audio Visualizer Ribbon */}
-      <footer className="relative z-10 px-8 py-3 bg-[#0D0F13] border-t border-[#232731] flex items-center justify-between">
+      {/* Bottom Ambient Audio Visualizer Ribbon & Studio Trademark */}
+      <footer className="relative z-10 px-8 py-3 bg-[#0D0F13] border-t border-[#232731] flex flex-col md:flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-3 text-xs font-mono text-[#A6B0BE]">
           <Volume2 className="w-4 h-4 text-[#FFDAB9]" />
           <span>AMBIENT ENGINE VISUALIZER</span>
@@ -296,8 +297,9 @@ export const StartupSplash: React.FC<StartupSplashProps> = ({
           <canvas ref={canvasRef} width={280} height={32} className="w-full h-full" />
         </div>
 
-        <div className="text-[11px] font-mono text-[#6D7787]">
-          KNOCKSSTUDiOS // KNOCKS CORE PIPELINE © 2026
+        <div className="text-[10px] font-mono text-center md:text-right text-[#6D7787] leading-tight">
+          <span className="text-[#8E99A8] block font-bold">SUPPORT &amp; LICENSING · HOLLYWOOD MOTiON PiCTURES HQ</span>
+          <span>© 2024–2026 KNOCKSSTUDiOS · PROTECTED UNDER INFINITY ENGINE</span>
         </div>
       </footer>
     </div>

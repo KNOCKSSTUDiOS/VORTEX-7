@@ -1,4 +1,19 @@
-export type MediaMedium = 'video' | 'audio' | 'picture' | 'mesh3d' | 'content';
+export type MediaMedium = 'video' | 'audio' | 'picture' | 'mesh3d' | 'content' | 'nch_suite' | 'storage' | 'cinema' | 'ai_battle' | 'chat';
+
+export interface NchAppTile {
+  id: string;
+  name: string;
+  subTitle: string;
+  description: string;
+  category: 'sound' | 'picture' | 'video' | 'upload' | 'avatar' | 'shaders' | 'ai' | 'repo';
+  categoryLabel: string;
+  icon: string;
+  targetMedium?: MediaMedium;
+  actionId: string;
+  tag?: string;
+  badge?: string;
+}
+
 
 export type DualEngineView = 'split' | 'generator-focus' | 'editor-focus';
 

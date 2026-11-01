@@ -1,0 +1,39 @@
+{
+  "id": "/",
+  "name": "KNOCKSSTUDiOS // VORTEX 7 CINEMA SUITE",
+  "short_name": "Vortex 7",
+  "description": "KNOCKSSTUDiOS Hollywood Motion Pictures & Tempest Vortex 7 FX Workstation",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#0A0A0E",
+  "background_color": "#0A0A0E",
+  "orientation": "any",
+  "categories": ["entertainment", "photo", "video", "productivity"],
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/vortex7-icon-1024-solid.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

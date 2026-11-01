@@ -17,6 +17,10 @@ import {
   Minimize2,
   Terminal,
   RotateCcw,
+  Sparkles,
+  UploadCloud,
+  FolderSync,
+  Shuffle,
 } from 'lucide-react';
 import { MediaMedium, DualEngineView, SubscriptionTierId, TelemetryState } from '../types';
 import { SUBSCRIPTION_TIERS } from '../utils/tierConfig';
@@ -34,6 +38,12 @@ interface TopTelemetryHubProps {
   autoHideEnabled: boolean;
   onToggleAutoHide: () => void;
   onOpenSplash: () => void;
+  onOpenGoogleDrive: () => void;
+  isImmersiveFullTile: boolean;
+  onToggleImmersiveFullTile: () => void;
+  onOpenIconModal: () => void;
+  workspaceMode?: 'showcase' | 'pro_nle';
+  onToggleWorkspaceMode?: () => void;
 }
 
 export const TopTelemetryHub: React.FC<TopTelemetryHubProps> = ({
@@ -49,15 +59,26 @@ export const TopTelemetryHub: React.FC<TopTelemetryHubProps> = ({
   autoHideEnabled,
   onToggleAutoHide,
   onOpenSplash,
+  onOpenGoogleDrive,
+  isImmersiveFullTile,
+  onToggleImmersiveFullTile,
+  onOpenIconModal,
+  workspaceMode = 'pro_nle',
+  onToggleWorkspaceMode,
 }) => {
+
   const tier = SUBSCRIPTION_TIERS[currentTier];
 
   const MEDIA_TABS: { id: MediaMedium; label: string; icon: React.ElementType }[] = [
-    { id: 'video', label: 'VIDEO', icon: Film },
-    { id: 'audio', label: 'AUDIO / MUSIC', icon: Music },
-    { id: 'picture', label: 'PICTURES', icon: Image },
+    { id: 'nch_suite', label: 'MASTER SUITE (40+ APPS)', icon: Sparkles },
+
+    { id: 'video', label: 'VIDEO PLUS', icon: Film },
+    { id: 'audio', label: 'SOUND N (AUDIO)', icon: Music },
+    { id: 'picture', label: 'PICTURE', icon: Image },
     { id: 'mesh3d', label: '3D & MESH', icon: Box },
     { id: 'content', label: 'STORY & SCRIPT', icon: FileText },
+    { id: 'storage', label: 'UPLOADS & DL', icon: UploadCloud },
+    { id: 'cinema', label: '24/7 SHUFFLE CINEMA', icon: Shuffle },
   ];
 
   return (
@@ -71,17 +92,31 @@ export const TopTelemetryHub: React.FC<TopTelemetryHubProps> = ({
             title="Launch Gallery & Studio Welcome"
             className="flex items-center gap-2 group cursor-pointer"
           >
-            <div className="w-6 h-6 rounded-xs bg-gradient-to-br from-[#E0FFFF] via-[#FFDAB9] to-[#FC8EAC] p-0.5 shadow-[0_0_8px_rgba(255,218,185,0.4)]">
-              <div className="w-full h-full bg-[#0A0A0A] rounded-xs flex items-center justify-center font-bold text-[10px] text-[#E0FFFF]">
-                K
-              </div>
+            <div className="w-7 h-7 rounded-xs p-0.5 shadow-[0_0_10px_rgba(252,142,172,0.4)] bg-[#0A0A0A] border border-[#FC8EAC]/60 flex items-center justify-center overflow-hidden">
+              <img
+                src="/vortex7-icon-1024-transparent.png"
+                alt="Vortex 7 Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className="font-extrabold text-base tracking-wider text-gradient-chrome">
                 KNOCKSSTUDiOS
               </span>
               <span className="text-[10px] text-[#FFDAB9] font-mono tracking-widest">[KNOCKS]</span>
+              <span className="hidden lg:inline text-[9px] text-[#E0FFFF] border border-[#E0FFFF]/30 px-1.5 py-0.2 rounded-xs font-mono tracking-wider">
+                HOLLYWOOD MOTiON PiCTURES
+              </span>
             </div>
+          </button>
+
+          <button
+            onClick={onOpenIconModal}
+            className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 bg-[#171B26] border border-[#FC8EAC]/50 hover:border-[#FC8EAC] text-[#FC8EAC] rounded-xs text-[10px] font-mono cursor-pointer transition-all shadow-[0_0_8px_rgba(252,142,172,0.2)]"
+            title="Open Vortex 7 Cutout & Multi-Platform Deploy Suite"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FC8EAC] animate-pulse" />
+            <span>VORTEX 7 ICON</span>
           </button>
 
           <span className="text-[#3A4150]">|</span>
@@ -124,8 +159,42 @@ export const TopTelemetryHub: React.FC<TopTelemetryHubProps> = ({
           <span className="text-[#E0FFFF]">{telemetry.memoryBufferMb} MB</span>
         </div>
 
-        {/* Right: Subscription Tier Badge & HUD controls */}
-        <div className="flex items-center gap-3">
+        {/* Right: Subscription Tier Badge, Google Drive & HUD controls */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {onToggleWorkspaceMode && (
+            <button
+              onClick={onToggleWorkspaceMode}
+              className="flex items-center gap-1.5 px-3 py-1 text-xs font-mono font-bold bg-gradient-to-r from-[#FFDAB9] via-[#FC8EAC] to-[#E0FFFF] text-[#0A0A0A] rounded-xs cursor-pointer shadow-[0_0_12px_rgba(255,218,185,0.35)] hover:brightness-110 transition-all"
+              title="Return to the Cinematic Hero Showcase Layout"
+            >
+              <Sparkles className="w-3.5 h-3.5 fill-current" />
+              <span>SHOWCASE HERO</span>
+            </button>
+          )}
+
+          <button
+            onClick={onOpenGoogleDrive}
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono border border-[#FFDAB9]/40 bg-[#161922] text-[#FFDAB9] rounded-xs transition-all cursor-pointer hover:bg-[#1F2432] hover:shadow-[0_0_8px_rgba(255,218,185,0.25)]"
+            title="Google Drive & Workspace Cloud Asset Connector"
+          >
+            <FolderSync className="w-3.5 h-3.5 text-[#FFDAB9]" />
+            <span className="hidden sm:inline">DRIVE ASSETS</span>
+          </button>
+
+
+          <button
+            onClick={onToggleImmersiveFullTile}
+            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono border rounded-xs transition-all cursor-pointer ${
+              isImmersiveFullTile
+                ? 'bg-gradient-to-r from-[#FFDAB9] to-[#FC8EAC] text-[#0A0A0A] font-bold border-transparent shadow-[0_0_10px_rgba(255,218,185,0.4)]'
+                : 'bg-[#14171E] border-[#2A2F3D] text-[#E0FFFF] hover:border-[#E0FFFF]/50'
+            }`}
+            title="Toggle 24/7 Full-Tile Three.js Cinema (Auto-hides all HUD to hover)"
+          >
+            <Shuffle className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">24/7 CINEMA</span>
+          </button>
+
           <button
             onClick={onToggleTerminal}
             className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono border rounded-xs transition-colors cursor-pointer ${
@@ -136,7 +205,7 @@ export const TopTelemetryHub: React.FC<TopTelemetryHubProps> = ({
             title="Toggle Local Python/Rust Terminal"
           >
             <Terminal className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">CLI CLI</span>
+            <span className="hidden sm:inline">CLI</span>
           </button>
 
           <button
