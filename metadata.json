@@ -1,0 +1,7 @@
+{
+  "name": "KNOCKSSTUDiOS AI CINEMA & FX SUITE",
+  "description": "Heavy industrial metallic cyberpunk cinema & FX creation engine and dual-engine editing workstation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

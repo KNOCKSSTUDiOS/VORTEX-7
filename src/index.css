@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --void-black: #0a0a0a;
+    --gunmetal-dark: #121212;
+    --gunmetal-medium: #1b1d22;
+    --gunmetal-light: #262930;
+    --gunmetal-border: #323742;
+    --fresnel-peach: #ffdab9;
+    --flamingo-pink: #fc8eac;
+    --pearl-cyan: #e0ffff;
+    --pearl-white: #f5fffa;
+    --magenta-fallback: #ff007f;
+    --violet-fallback: #8a2be2;
+  }
+
+  body {
+    background-color: #0a0a0a;
+    color: #f5fffa;
+    font-family: 'Outfit', sans-serif;
+    overflow-x: hidden;
+    user-select: none;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Metallic brushed plate surface */
+.bg-brushed-metal {
+  background: linear-gradient(135deg, #181a1f 0%, #121417 50%, #16181d 100%);
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.015) 0px,
+    rgba(255, 255, 255, 0.015) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+}
+
+.bg-gunmetal-bevel {
+  background: linear-gradient(180deg, #1f2229 0%, #14161a 100%);
+  border-top: 1px solid rgba(224, 255, 255, 0.15);
+  border-left: 1px solid rgba(255, 218, 185, 0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.8);
+  border-right: 1px solid rgba(0, 0, 0, 0.6);
+}
+
+.bg-metallic-plate {
+  background: radial-gradient(circle at 50% 0%, rgba(255, 218, 185, 0.05) 0%, transparent 70%),
+              linear-gradient(180deg, #16181d 0%, #0e1013 100%);
+  box-shadow: inset 0 1px 0 rgba(245, 255, 250, 0.08), 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Bioluminescent glows */
+.glow-cyan {
+  box-shadow: 0 0 12px rgba(224, 255, 255, 0.35);
+}
+
+.glow-peach {
+  box-shadow: 0 0 12px rgba(255, 218, 185, 0.35);
+}
+
+.glow-pink {
+  box-shadow: 0 0 12px rgba(252, 142, 172, 0.35);
+}
+
+.glow-pearlescent {
+  box-shadow: 0 0 18px rgba(224, 255, 255, 0.25), 0 0 35px rgba(252, 142, 172, 0.15);
+}
+
+.text-gradient-pearlescent {
+  background: linear-gradient(135deg, #e0ffff 0%, #ffdab9 50%, #fc8eac 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-chrome {
+  background: linear-gradient(180deg, #ffffff 0%, #cfd5e0 45%, #8890a0 55%, #f5fffa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Custom industrial scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0d0f12;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #272c36;
+  border-radius: 2px;
+  border: 1px solid rgba(224, 255, 255, 0.1);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ffdab9;
+}
