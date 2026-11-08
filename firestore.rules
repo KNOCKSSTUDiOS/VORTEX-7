@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny for unauthenticated or unspecified paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // User profiles: authenticated users can read, own user or enterprise owner can write
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && (request.auth.uid == userId || request.auth.token.email == 'GTamayo36@gmail.com');
+    }
+
+    // Projects: owner or studio executive can manage
+    match /projects/{projectId} {
+      allow read: if request.auth != null && (resource == null || resource.data.ownerUid == request.auth.uid || request.auth.token.email == 'GTamayo36@gmail.com');
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (resource.data.ownerUid == request.auth.uid || request.auth.token.email == 'GTamayo36@gmail.com');
+    }
+
+    // Studio presets: public read, write restricted to studio owner
+    match /presets/{presetId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.email == 'GTamayo36@gmail.com';
+    }
+  }
+}

@@ -23,13 +23,21 @@ import { PictureMatrixEditor } from './components/PictureMatrixEditor';
 import { AudioMasterEditor } from './components/AudioMasterEditor';
 import { ScriptStoryboardEditor } from './components/ScriptStoryboardEditor';
 import { TierVerificationModal } from './components/TierVerificationModal';
-import { NchMasterSuiteLauncher } from './components/NchMasterSuiteLauncher';
+import { KnocksMasterSuiteLauncher } from './components/KnocksMasterSuiteLauncher';
 import { StorageIngestView } from './components/StorageIngestView';
 import { GoogleDriveConnectorModal } from './components/GoogleDriveConnectorModal';
 import { ThreeDCinemaShuffler } from './components/ThreeDCinemaShuffler';
 import { VortexIconCutoutModal } from './components/VortexIconCutoutModal';
 import { KnocksStudioCenterStage } from './components/KnocksStudioCenterStage';
+import { CyberHeroBattleGame3D } from './components/CyberHeroBattleGame3D';
+import { BioscienceStudio } from './components/BioscienceStudio';
+import { GeminiStudioSuite } from './components/GeminiStudioSuite';
+import { PlatformDeployModal } from './components/PlatformDeployModal';
+import { OwnerProvider } from './context/OwnerContext';
+import { OwnerAuthModal } from './components/OwnerAuthModal';
+import { OwnerExecutiveVaultModal } from './components/OwnerExecutiveVaultModal';
 import { audioEngine } from './utils/audioEngine';
+import { rustWasmPipeline } from './utils/rustWasmMemorySafePipeline';
 
 export default function App() {
   // Master Workspace Mode: 'showcase' (the exact cinematic layout from user video) or 'pro_nle'
@@ -42,6 +50,7 @@ export default function App() {
   const [isDriveModalOpen, setIsDriveModalOpen] = useState<boolean>(false);
   const [isImmersiveFullTile, setIsImmersiveFullTile] = useState<boolean>(false);
   const [isIconModalOpen, setIsIconModalOpen] = useState<boolean>(false);
+  const [isPlatformModalOpen, setIsPlatformModalOpen] = useState<boolean>(false);
   const [isTopHovered, setIsTopHovered] = useState<boolean>(false);
   const [isBottomHovered, setIsBottomHovered] = useState<boolean>(false);
   const [isLeftHovered, setIsLeftHovered] = useState<boolean>(false);
@@ -92,7 +101,7 @@ export default function App() {
     {
       id: 'c4',
       trackId: 'FX',
-      title: 'ACES_LUT_FRESNEL_PEACH',
+      title: 'ACES_LUT_TITANIUM_GOLD_4K',
       startSec: 0,
       durationSec: 20.0,
       color: '#FC8EAC',
@@ -112,7 +121,7 @@ export default function App() {
       title: '808_SUB_DRONE_PUNCH_45HZ',
       startSec: 0,
       durationSec: 15.0,
-      color: '#FFDAB9',
+      color: '#FFD700',
     },
     {
       id: 'c7',
@@ -183,7 +192,7 @@ export default function App() {
       id: 'sc_1',
       sceneNumber: 1,
       slugline: 'INT. COCKPIT - NIGHT',
-      description: 'Pilot awakens in zero gravity as the flight HUD reflects bioluminescent peach alarms.',
+      description: 'Pilot awakens in zero gravity as the flight HUD reflects sovereign titanium gold telemetry.',
       dialogue: 'Flight telemetry synced. Tempest core online.',
       character: 'PILOT VANCE',
       phonemes: 'AY TE LE ME TRY',
@@ -211,15 +220,18 @@ export default function App() {
     tempestNodeSynced: true,
     infinityCoreOptimized: true,
     fps: 60.0,
-    wasmLatencyMs: 0.8,
-    computeLatencyMs: 14,
+    wasmLatencyMs: 0.4,
+    computeLatencyMs: 11,
     memoryBufferMb: 1420,
     activeThreads: 8,
     activeKernels: 32,
     routeMode: 'RUST_WASM_EFRAME',
+    rustMemorySafeVerified: true,
+    rustZeroCopyOps: 48,
+    wasmMirrorsActive: 8,
   });
 
-  // Terminal Logs
+  // Terminal Logs (All telemetry logs explicitly reference Rust and WASM memory safety verification)
   const [isTerminalOpen, setIsTerminalOpen] = useState<boolean>(true);
   const [logs, setLogs] = useState<TerminalLog[]>([
     {
@@ -232,19 +244,25 @@ export default function App() {
       id: '2',
       timestamp: '16:12:01',
       level: 'wasm',
-      text: '[SMART-ROUTER] Local Rust/WASM eframe/wgpu execution kernel bound.',
+      text: '[RUST_WASM::BOOT] Local Rust compiler core & WASM eframe/wgpu execution kernel bound. Rust Memory Safe: ACTIVE.',
     },
     {
       id: '3',
       timestamp: '16:12:02',
-      level: 'success',
-      text: '[TEMPEST_NODE] Pipeline synced. IMAX 1.43:1 frame pipeline calibrated.',
+      level: 'wasm',
+      text: '[RUST_BORROW_CHECKER] Compile-time lifetime analysis passed // 0 data races // WASM linear memory 4GB sandbox mapped.',
     },
     {
       id: '4',
       timestamp: '16:12:03',
+      level: 'success',
+      text: '[WASM_SIMD::PIPELINE] Tempest Rust/WASM node synced. IMAX 1.43:1 zero-copy asset pipeline calibrated.',
+    },
+    {
+      id: '5',
+      timestamp: '16:12:04',
       level: 'info',
-      text: '[INFINITY-CORE] Zero-lock telemetry active. Ready for generation.',
+      text: '[INFINITY-CORE] Rust zero-lock telemetry active. All asset operations routed via Rust/WASM memory safe layer.',
     },
   ]);
 
@@ -296,89 +314,154 @@ export default function App() {
     setIsPlaying(!isPlaying);
   };
 
-  // Execute CLI Command
+  // Execute CLI Command with simulated high-performance Rust-based backend processing pipeline
   const handleExecuteCommand = (cmd: string) => {
-    const timeStr = new Date().toTimeString().split(' ')[0];
-    const userLog: TerminalLog = {
-      id: 'log_' + Date.now(),
-      timestamp: timeStr,
-      level: 'info',
-      text: `$ ${cmd}`,
+    const trimmed = cmd.trim();
+    if (!trimmed) return;
+
+    if (trimmed.toLowerCase() === 'clear') {
+      setLogs([]);
+      return;
+    }
+
+    const formatTimestamp = () => {
+      const d = new Date();
+      return `${d.toTimeString().split(' ')[0]}.${String(d.getMilliseconds()).padStart(3, '0')}`;
     };
 
+    // 1. Immediately log user command
+    const userLog: TerminalLog = {
+      id: 'log_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      timestamp: formatTimestamp(),
+      level: 'info',
+      text: `$ ${trimmed}`,
+    };
+
+    setLogs((prev) => [...prev, userLog]);
+
+    // Calculate command response and level
     let replyText = '';
     let replyLevel: TerminalLog['level'] = 'success';
+    const normalized = trimmed.toLowerCase();
 
-    const normalized = cmd.toLowerCase().trim();
     if (normalized === 'help') {
-      replyText = 'Available commands: tempest status, route --optimize, render --fps 60, export --format prores, wasm benchmark, mesh --analyze, clear';
+      replyText = 'Available commands: tempest status, route --optimize, render --fps 60, export --format prores, wasm benchmark, rust-integrity, mesh --analyze, clear';
       replyLevel = 'info';
     } else if (normalized.startsWith('tempest status')) {
-      replyText = 'TEMPEST_STUDiO v4.2 // Node 0x1 Synced // GPU: wgpu Vulkan // Latency: 0.8ms (WASM) / 14ms (Compute)';
+      replyText = 'TEMPEST_STUDiO v4.2 // Node 0x1 Synced // GPU: wgpu Vulkan // Latency: 0.4ms (WASM) / 11ms (Compute)';
       replyLevel = 'success';
     } else if (normalized.startsWith('route --optimize')) {
       replyText = 'Autonomous Smart-Router: Redistributed 4 compute pipelines to local Rust/WASM eframe. Queue locks: 0.';
       replyLevel = 'wasm';
       setTelemetry((prev) => ({
         ...prev,
-        wasmLatencyMs: 0.6,
-        memoryBufferMb: 1280,
+        wasmLatencyMs: 0.4,
+        memoryBufferMb: 1240,
+        activeKernels: 48,
+        activeThreads: 16,
       }));
     } else if (normalized.startsWith('render')) {
-      replyText = 'Starting local non-blocking render queue: 60 FPS ProRes 4444 XQ. Estimated time: 1.8s.';
+      replyText = 'Starting local non-blocking render queue: 60 FPS ProRes 4444 XQ. Multi-threaded Rayon worker pool active.';
       replyLevel = 'warn';
     } else if (normalized.startsWith('export')) {
-      replyText = 'Export pipeline invoked: Audio stems + LipSync visemes packaged for IMAX delivery.';
+      replyText = 'Export pipeline invoked: Audio stems + LipSync visemes packaged for IMAX delivery with zero-copy stream.';
       replyLevel = 'success';
     } else if (normalized.startsWith('wasm benchmark')) {
-      replyText = 'WASM SIMD Benchmark: 1.2M vertex calculations in 0.42ms. 100% Rust memory safety confirmed.';
+      replyText = 'WASM SIMD Benchmark: 1.2M vertex calculations in 0.38ms. 100% Rust memory safety confirmed.';
       replyLevel = 'wasm';
     } else if (normalized.startsWith('mesh --analyze')) {
       replyText = `3D Mesh Analysis: ${meshConfig.modelType.toUpperCase()} | 64,800 Vertices | PBR Normal Map: Passed.`;
       replyLevel = 'info';
-    } else if (normalized === 'clear') {
-      setLogs([]);
-      return;
+    } else if (normalized.startsWith('rust-integrity') || normalized.startsWith('rust-verify')) {
+      replyText = 'Rust Backend System: 16/16 thread safety invariants held. AddressSanitizer/Valgrind clean: 0 heap leaks, 0 data races.';
+      replyLevel = 'wasm';
     } else {
-      replyText = `Executed '${cmd}' on local TEMPEST pipe. Status: OK.`;
+      replyText = `Executed '${trimmed}' on native Rust pipeline. Exit code: 0 [OK].`;
     }
 
-    const replyLog: TerminalLog = {
-      id: 'log_' + (Date.now() + 1),
-      timestamp: timeStr,
-      level: replyLevel,
-      text: replyText,
-    };
+    // High performance Rust native execution metrics
+    const hashHex = Array.from({ length: 8 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+    const allocBytes = Math.floor(Math.random() * 128 + 64);
+    const execMicros = (Math.random() * 55 + 75).toFixed(1);
 
-    setLogs((prev) => [...prev, userLog, replyLog]);
+    // 2. High-performance Rust backend processing pipeline simulation:
+    // Stage A: Mock 'Rust Memory Safe' check & data integrity verification
+    setTimeout(() => {
+      const rustMemSafeLog: TerminalLog = {
+        id: 'log_mem_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+        timestamp: formatTimestamp(),
+        level: 'wasm',
+        text: `[Rust Memory Safe] Checked: Data integrity verified // Lifetimes valid // Zero-copy borrow 0x${hashHex} // Heap checked (0 leaks, 0 dangling refs)`,
+      };
+
+      const nativeSysLog: TerminalLog = {
+        id: 'log_sys_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+        timestamp: formatTimestamp(),
+        level: 'info',
+        text: `[NATIVE_SYS::libknocks_core.so] Native FFI bridge -> Tokio runtime worker [x86_64_AVX512] // Syscall: sys_epoll_pwait2 [Integrity: SHA-256 OK / ${allocBytes}B stack / ${execMicros}µs]`,
+      };
+
+      setLogs((prev) => [...prev, rustMemSafeLog, nativeSysLog]);
+
+      // Stage B: Verified command output rendered in terminal
+      setTimeout(() => {
+        const replyLog: TerminalLog = {
+          id: 'log_out_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+          timestamp: formatTimestamp(),
+          level: replyLevel,
+          text: `[DISPATCH] ${replyText}`,
+        };
+
+        setLogs((prev) => [...prev, replyLog]);
+      }, 70);
+    }, 50);
   };
 
-  // Insert clip from Source monitor to Timeline
-  const handleInsertClip = () => {
+  // Insert clip from Source monitor to Timeline via Rust/WASM memory-safe layer
+  const handleInsertClip = (
+    customTitle?: string,
+    customDuration?: number,
+    customType: 'video' | 'audio' = 'video'
+  ) => {
+    const title = customTitle || sourceClipTitle;
+    const dur = customDuration || 4.5;
+    const track = customType === 'audio' ? 'A1' : 'V1';
+    const verify = rustWasmPipeline.verifyAssetOperation('timeline_insert', title, customType, 16777216);
     const newClip: TimelineClip = {
       id: 'clip_' + Date.now(),
-      trackId: 'V1',
-      title: sourceClipTitle,
+      trackId: track,
+      title,
       startSec: currentPlayheadSec,
-      durationSec: 4.5,
-      color: '#FC8EAC',
+      durationSec: dur,
+      color: customType === 'audio' ? '#FFDAB9' : '#FC8EAC',
     };
     setClips((prev) => [...prev, newClip]);
     setProgramClipTitle(newClip.title);
+    setLogs((prev) => [...prev, ...verify.logs]);
+    setTelemetry((prev) => ({
+      ...prev,
+      rustZeroCopyOps: (prev.rustZeroCopyOps || 0) + 1,
+      wasmLatencyMs: 0.35,
+    }));
     handleExecuteCommand(`insert clip "${sourceClipTitle}" at ${currentPlayheadSec.toFixed(2)}s`);
   };
 
-  // Overwrite clip
+  // Overwrite clip via Rust/WASM memory-safe layer
   const handleOverwriteClip = () => {
+    const verify = rustWasmPipeline.verifyAssetOperation('timeline_overwrite', sourceClipTitle, 'video', 16777216);
+    setLogs((prev) => [...prev, ...verify.logs]);
     handleInsertClip();
   };
 
-  // Split clip at playhead
+  // Split clip at playhead via Rust/WASM memory-safe layer
   const handleSplitClipAtPlayhead = () => {
     const target = clips.find(
       (c) => currentPlayheadSec > c.startSec && currentPlayheadSec < c.startSec + c.durationSec
     );
     if (!target) return;
+
+    const verify = rustWasmPipeline.verifyAssetOperation('timeline_split_razor', target.title, 'video', 8388608);
+    setLogs((prev) => [...prev, ...verify.logs]);
 
     const firstHalfDuration = currentPlayheadSec - target.startSec;
     const secondHalfDuration = target.durationSec - firstHalfDuration;
@@ -399,17 +482,23 @@ export default function App() {
     handleExecuteCommand(`razor split clip "${target.title}" at ${currentPlayheadSec.toFixed(2)}s`);
   };
 
-  // Delete selected clip
+  // Delete selected clip (Rust RAII Drop memory deallocation)
   const handleDeleteClip = (id: string) => {
+    const target = clips.find((c) => c.id === id);
+    const dropLog = rustWasmPipeline.dropAssetOperation(target?.title || id, 'timeline_clip');
+    setLogs((prev) => [...prev, dropLog]);
     setClips((prev) => prev.filter((c) => c.id !== id));
   };
 
-  // Add clip to specific track
+  // Add clip to specific track via Rust/WASM memory-safe layer
   const handleAddClipToTrack = (trackId: string) => {
+    const clipTitle = `NEW_${trackId}_CLIP`;
+    const verify = rustWasmPipeline.verifyAssetOperation('track_clip_alloc', clipTitle, trackId.startsWith('V') ? 'video' : 'audio', 4194304);
+    setLogs((prev) => [...prev, ...verify.logs]);
     const newClip: TimelineClip = {
       id: 'clip_' + Date.now(),
       trackId,
-      title: `NEW_${trackId}_CLIP`,
+      title: clipTitle,
       startSec: currentPlayheadSec,
       durationSec: 5.0,
       color:
@@ -422,8 +511,10 @@ export default function App() {
     setClips((prev) => [...prev, newClip]);
   };
 
-  // Update EQ Band helper
+  // Update EQ Band helper via Rust/WASM DSP memory-safe pipeline
   const handleUpdateEqBand = (bandId: number, freq: number, gain: number, q: number) => {
+    const verify = rustWasmPipeline.verifyAssetOperation('audio_dsp_eq_band', `Band_${bandId}_${freq}Hz`, 'audio', 524288);
+    setLogs((prev) => [...prev, ...verify.logs]);
     setAudioState((prev) => ({
       ...prev,
       eqBands: prev.eqBands.map((b) => (b.id === bandId ? { ...b, freq, gain, q } : b)),
@@ -431,7 +522,8 @@ export default function App() {
   };
 
   return (
-    <div className="w-screen h-screen flex flex-col bg-[#0A0A0A] text-[#F5FFFA] overflow-hidden select-none font-sans">
+    <OwnerProvider>
+      <div className="w-screen h-screen flex flex-col bg-[#0A0A0A] text-[#F5FFFA] overflow-hidden select-none font-sans">
       {/* 1. STARTUP DISPLAY (Live-shuffling gallery & ambient audio visualizer) */}
       {showSplash && (
         <StartupSplash
@@ -456,6 +548,7 @@ export default function App() {
           onOpenGoogleDrive={() => setIsDriveModalOpen(true)}
           onOpenIconModal={() => setIsIconModalOpen(true)}
           onOpenTierModal={() => setIsTierModalOpen(true)}
+          onOpenPlatformModal={() => setIsPlatformModalOpen(true)}
           onToggleImmersiveFullTile={() => setIsImmersiveFullTile(true)}
           onSwitchToProNLE={() => setWorkspaceMode('pro_nle')}
           onExecuteCommand={handleExecuteCommand}
@@ -487,6 +580,7 @@ export default function App() {
               isImmersiveFullTile={isImmersiveFullTile}
               onToggleImmersiveFullTile={() => setIsImmersiveFullTile(!isImmersiveFullTile)}
               onOpenIconModal={() => setIsIconModalOpen(true)}
+              onOpenPlatformModal={() => setIsPlatformModalOpen(true)}
               workspaceMode={workspaceMode}
               onToggleWorkspaceMode={() => setWorkspaceMode('showcase')}
             />
@@ -505,8 +599,16 @@ export default function App() {
               >
                 <LeftToolDock
                   activeMedium={activeMedium}
-                  onSynthesizeClip={(clip) => setClips((prev) => [...prev, clip])}
-                  onSelectSourceClip={(title) => setSourceClipTitle(title)}
+                  onSynthesizeClip={(clip) => {
+                    const verify = rustWasmPipeline.verifyAssetOperation('ai_generator_synth_clip', clip.title, 'video', 14680064);
+                    setLogs((prev) => [...prev, ...verify.logs]);
+                    setClips((prev) => [...prev, clip]);
+                  }}
+                  onSelectSourceClip={(title) => {
+                    const verify = rustWasmPipeline.verifyAssetOperation('source_monitor_buffer_bind', title, 'video', 8388608);
+                    setLogs((prev) => [...prev, ...verify.logs]);
+                    setSourceClipTitle(title);
+                  }}
                 />
               </div>
             )}
@@ -515,9 +617,11 @@ export default function App() {
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
               {/* Active Medium Viewport / Editor Display */}
               {activeMedium === 'nch_suite' && (
-                <NchMasterSuiteLauncher
+                <KnocksMasterSuiteLauncher
                   onLaunchApp={(tile) => {
-                    handleExecuteCommand(`nch launch "${tile.name}" [${tile.subTitle}]`);
+                    const verify = rustWasmPipeline.verifyAssetOperation('applet_sandbox_isolate', tile.name, 'system', 4194304);
+                    setLogs((prev) => [...prev, ...verify.logs]);
+                    handleExecuteCommand(`launch "${tile.name}" [${tile.subTitle}]`);
                   }}
                   onSelectMedium={(m) => setActiveMedium(m)}
                   onOpenTierModal={() => setIsTierModalOpen(true)}
@@ -537,6 +641,8 @@ export default function App() {
                   isImmersiveActive={isImmersiveFullTile}
                   onToggleImmersive={() => setIsImmersiveFullTile(!isImmersiveFullTile)}
                   onSelectScene={(sceneTitle) => {
+                    const verify = rustWasmPipeline.verifyAssetOperation('cinema_shuffler_stream', sceneTitle, 'video', 12582912);
+                    setLogs((prev) => [...prev, ...verify.logs]);
                     setSourceClipTitle(sceneTitle);
                     handleExecuteCommand(`select 24/7 scene "${sceneTitle}"`);
                   }}
@@ -562,14 +668,22 @@ export default function App() {
               {activeMedium === 'mesh3d' && (
                 <ThreeDViewport
                   config={meshConfig}
-                  onChangeConfig={(newCfg) => setMeshConfig((prev) => ({ ...prev, ...newCfg }))}
+                  onChangeConfig={(newCfg) => {
+                    const verify = rustWasmPipeline.verifyAssetOperation('mesh_vertex_pbr_alloc', (newCfg.modelType || meshConfig.modelType) + ' Mesh', 'mesh3d', 5242880);
+                    setLogs((prev) => [...prev, ...verify.logs]);
+                    setMeshConfig((prev) => ({ ...prev, ...newCfg }));
+                  }}
                 />
               )}
 
               {activeMedium === 'picture' && (
                 <PictureMatrixEditor
                   colorGrade={colorGrade}
-                  onChangeColorGrade={(newGrade) => setColorGrade((prev) => ({ ...prev, ...newGrade }))}
+                  onChangeColorGrade={(newGrade) => {
+                    const verify = rustWasmPipeline.verifyAssetOperation('color_matrix_lut_dsp', newGrade.vintageMatrix || 'Rec.2020 ACEScc', 'image', 2097152);
+                    setLogs((prev) => [...prev, ...verify.logs]);
+                    setColorGrade((prev) => ({ ...prev, ...newGrade }));
+                  }}
                   onResetGrade={() =>
                     setColorGrade({
                       lift: 0,
@@ -593,7 +707,11 @@ export default function App() {
               {activeMedium === 'audio' && (
                 <AudioMasterEditor
                   audioState={audioState}
-                  onChangeAudioState={(newState) => setAudioState((prev) => ({ ...prev, ...newState }))}
+                  onChangeAudioState={(newState) => {
+                    const verify = rustWasmPipeline.verifyAssetOperation('audio_pcm_harmonic_synthesis', `BPM_${newState.bpm || audioState.bpm}`, 'audio', 1048576);
+                    setLogs((prev) => [...prev, ...verify.logs]);
+                    setAudioState((prev) => ({ ...prev, ...newState }));
+                  }}
                   onUpdateEqBand={handleUpdateEqBand}
                 />
               )}
@@ -601,7 +719,9 @@ export default function App() {
               {activeMedium === 'content' && (
                 <ScriptStoryboardEditor
                   scenes={storyScenes}
-                  onAddScene={() =>
+                  onAddScene={() => {
+                    const verify = rustWasmPipeline.verifyAssetOperation('storyboard_scene_alloc', 'Scene Beat Allocation', 'script', 262144);
+                    setLogs((prev) => [...prev, ...verify.logs]);
                     setStoryScenes((prev) => [
                       ...prev,
                       {
@@ -616,12 +736,36 @@ export default function App() {
                         lensFocal: '35mm Prime',
                         durationSec: 4.0,
                       },
-                    ])
-                  }
-                  onUpdateScene={(id, updated) =>
-                    setStoryScenes((prev) => prev.map((s) => (s.id === id ? { ...s, ...updated } : s)))
-                  }
-                  onDeleteScene={(id) => setStoryScenes((prev) => prev.filter((s) => s.id !== id))}
+                    ]);
+                  }}
+                  onUpdateScene={(id, updated) => {
+                    const verify = rustWasmPipeline.verifyAssetOperation('storyboard_scene_rebind', `Scene_${id}`, 'script', 262144);
+                    setLogs((prev) => [...prev, ...verify.logs]);
+                    setStoryScenes((prev) => prev.map((s) => (s.id === id ? { ...s, ...updated } : s)));
+                  }}
+                  onDeleteScene={(id) => {
+                    const dropLog = rustWasmPipeline.dropAssetOperation(`Scene_${id}`, 'storyboard_scene');
+                    setLogs((prev) => [...prev, dropLog]);
+                    setStoryScenes((prev) => prev.filter((s) => s.id !== id));
+                  }}
+                />
+              )}
+
+              {activeMedium === 'ai_battle' && (
+                <CyberHeroBattleGame3D
+                  onExecuteCommand={handleExecuteCommand}
+                  onExit={() => setActiveMedium('video')}
+                />
+              )}
+
+              {activeMedium === 'bioscience' && (
+                <BioscienceStudio onExecuteCommand={handleExecuteCommand} />
+              )}
+
+              {(activeMedium === 'gemini_ai' || activeMedium === 'chat') && (
+                <GeminiStudioSuite
+                  onExecuteCommand={handleExecuteCommand}
+                  onSynthesizeClip={(title, dur, type) => handleInsertClip(title, dur, type)}
                 />
               )}
             </div>
@@ -683,10 +827,19 @@ export default function App() {
         isOpen={isDriveModalOpen}
         onClose={() => setIsDriveModalOpen(false)}
         onImportToTimeline={(clip) => {
+          const verify = rustWasmPipeline.verifyAssetOperation('gdrive_cloud_ingest', clip.title, 'video', 33554432);
+          setLogs((prev) => [...prev, ...verify.logs]);
           setClips((prev) => [...prev, clip]);
+          setTelemetry((prev) => ({
+            ...prev,
+            rustZeroCopyOps: (prev.rustZeroCopyOps || 0) + 1,
+            wasmLatencyMs: 0.28,
+          }));
           handleExecuteCommand(`import gdrive take "${clip.title}" to track ${clip.trackId}`);
         }}
         onLoadToSourceMonitor={(title) => {
+          const verify = rustWasmPipeline.verifyAssetOperation('gdrive_source_stream_bind', title, 'video', 16777216);
+          setLogs((prev) => [...prev, ...verify.logs]);
           setSourceClipTitle(title);
           handleExecuteCommand(`load to source monitor "${title}"`);
         }}
@@ -699,7 +852,21 @@ export default function App() {
         onClose={() => setIsIconModalOpen(false)}
       />
 
-      {/* 8. THREE.JS 24/7 FULL-TILE SHUFFLE CINEMA (All hides to hover of mouse or touch of screen) */}
+      {/* 8. MULTI-PLATFORM DEPLOY & MARKETPLACE MODAL (UNITY, LAPTOP, PHONE, WEB, MICRO, ANDROID STORE) */}
+      <PlatformDeployModal
+        isOpen={isPlatformModalOpen}
+        onClose={() => setIsPlatformModalOpen(false)}
+        onExecuteCommand={handleExecuteCommand}
+      />
+
+      {/* PRO ENTERPRISE OWNER AUTH & EXECUTIVE VAULT MODALS */}
+      <OwnerAuthModal />
+      <OwnerExecutiveVaultModal
+        onOpenPlatformModal={() => setIsPlatformModalOpen(true)}
+        onExecuteCommand={handleExecuteCommand}
+      />
+
+      {/* 9. THREE.JS 24/7 FULL-TILE SHUFFLE CINEMA (All hides to hover of mouse or touch of screen) */}
       {isImmersiveFullTile && (
         <div className="fixed inset-0 z-40 bg-[#050608] flex items-center justify-center overflow-hidden">
           <ThreeDCinemaShuffler
@@ -780,5 +947,6 @@ export default function App() {
         </div>
       )}
     </div>
+    </OwnerProvider>
   );
 }

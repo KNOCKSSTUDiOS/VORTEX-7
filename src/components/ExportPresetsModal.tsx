@@ -27,7 +27,7 @@ interface ExportPresetsModalProps {
   onSavePresetLog: (message: string) => void;
 }
 
-const FACTORY_PRESETS: ExportPreset[] = [
+export const FACTORY_PRESETS: ExportPreset[] = [
   {
     id: 'preset_imax_master',
     name: 'IMAX 1.43:1 Master DCI Archive',

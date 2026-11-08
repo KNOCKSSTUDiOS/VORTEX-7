@@ -1,4 +1,16 @@
-export type MediaMedium = 'video' | 'audio' | 'picture' | 'mesh3d' | 'content' | 'nch_suite' | 'storage' | 'cinema' | 'ai_battle' | 'chat';
+export type MediaMedium =
+  | 'video'
+  | 'audio'
+  | 'picture'
+  | 'mesh3d'
+  | 'content'
+  | 'nch_suite'
+  | 'storage'
+  | 'cinema'
+  | 'ai_battle'
+  | 'chat'
+  | 'bioscience'
+  | 'gemini_ai';
 
 export interface NchAppTile {
   id: string;
@@ -44,6 +56,9 @@ export interface TelemetryState {
   activeThreads: number;
   activeKernels: number;
   routeMode: 'RUST_WASM_EFRAME' | 'COMPUTE_KERNEL_TELEMETRY' | 'HYBRID_PIPELINE';
+  rustMemorySafeVerified?: boolean;
+  rustZeroCopyOps?: number;
+  wasmMirrorsActive?: number;
 }
 
 export interface TimelineClip {

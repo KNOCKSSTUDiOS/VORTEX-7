@@ -16,7 +16,9 @@ import {
   ShieldCheck,
   Eye,
   ExternalLink,
+  Lock,
 } from 'lucide-react';
+import { useOwner } from '../context/OwnerContext';
 
 interface VortexIconCutoutModalProps {
   isOpen: boolean;
@@ -29,6 +31,7 @@ export const VortexIconCutoutModal: React.FC<VortexIconCutoutModalProps> = ({
 }) => {
   const [copiedType, setCopiedType] = useState<string | null>(null);
   const [previewBg, setPreviewBg] = useState<'transparent' | 'dark' | 'ios' | 'android' | 'unity'>('transparent');
+  const { isOwnerMode, openAuthModal } = useOwner();
 
   if (!isOpen) return null;
 
@@ -298,52 +301,67 @@ echo "VORTEX 7 icons ready in ~/Downloads/vortex7_icons/"`;
             </div>
           </div>
 
-          {/* PowerShell & USB Transfer Command Section */}
-          <div className="p-4 bg-[#090A0D] border border-[#242A38] rounded-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-[#FFDAB9] font-bold">
-                <HardDrive className="w-4 h-4 text-[#FFDAB9]" />
-                <span>POWERSHELL DIRECT DOWNLOAD &amp; USB TRANSFER SCRIPT</span>
+          {/* PowerShell & USB Transfer Command Section (Protected for Owner Only) */}
+          {isOwnerMode ? (
+            <div className="p-4 bg-[#090A0D] border border-emerald-500/40 rounded-xs space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-[#00F5D4] font-bold">
+                  <HardDrive className="w-4 h-4 text-[#00F5D4]" />
+                  <span>POWERSHELL DIRECT DOWNLOAD &amp; USB TRANSFER SCRIPT [OWNER SUITE]</span>
+                </div>
+                <button
+                  onClick={() => handleCopy(powershellCommand, 'powershell')}
+                  className="px-2.5 py-1 bg-[#1A1F2C] border border-[#30384D] text-[#E0FFFF] rounded-xs text-[10px] font-bold cursor-pointer hover:bg-[#242B3E] flex items-center gap-1.5"
+                >
+                  {copiedType === 'powershell' ? (
+                    <>
+                      <Check className="w-3 h-3 text-[#00F5D4]" />
+                      <span className="text-[#00F5D4]">COPIED TO CLIPBOARD</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3 h-3" />
+                      <span>COPY POWERSHELL COMMAND</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <p className="text-[10px] text-[#8E99A8]">
+                Open PowerShell on Windows or tablet, paste this command, and press Enter. It automatically downloads the 5.5MB bundle, extracts all platform directories to your Downloads, and if a USB drive is attached, mirrors the icons to your USB flash drive!
+              </p>
+
+              <pre className="p-3 bg-[#060709] border border-[#1C202B] rounded-xs text-[#E0FFFF] text-[10px] font-mono overflow-x-auto leading-relaxed select-all">
+                {powershellCommand}
+              </pre>
+
+              {/* Bash / cURL snippet for Mac / Linux / Termux */}
+              <div className="pt-2 border-t border-[#1C202B] flex items-center justify-between">
+                <span className="text-[10px] text-[#6D7787]">
+                  macOS / Linux / Android Termux command:
+                </span>
+                <button
+                  onClick={() => handleCopy(bashCommand, 'bash')}
+                  className="px-2 py-0.5 bg-[#141720] border border-[#262B38] text-[#8E99A8] hover:text-[#F5FFFA] rounded-xs text-[9px] cursor-pointer flex items-center gap-1"
+                >
+                  {copiedType === 'bash' ? 'COPIED' : 'COPY CURL COMMAND'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="p-3 bg-[#090A0D]/80 border border-[#242A38] rounded-xs flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2 text-gray-400">
+                <Lock className="w-4 h-4 text-[#FFDAB9]" />
+                <span className="text-[11px]">System PowerShell Scripts &amp; USB Mirroring are isolated in the Owner Profile.</span>
               </div>
               <button
-                onClick={() => handleCopy(powershellCommand, 'powershell')}
-                className="px-2.5 py-1 bg-[#1A1F2C] border border-[#30384D] text-[#E0FFFF] rounded-xs text-[10px] font-bold cursor-pointer hover:bg-[#242B3E] flex items-center gap-1.5"
+                onClick={openAuthModal}
+                className="px-3 py-1 bg-[#171D2C] hover:bg-[#222B3F] border border-[#2F3C59] text-[#FFDAB9] rounded-xs text-[10px] font-bold cursor-pointer"
               >
-                {copiedType === 'powershell' ? (
-                  <>
-                    <Check className="w-3 h-3 text-[#00F5D4]" />
-                    <span className="text-[#00F5D4]">COPIED TO CLIPBOARD</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3 h-3" />
-                    <span>COPY POWERSHELL COMMAND</span>
-                  </>
-                )}
+                UNLOCK OWNER SUITE
               </button>
             </div>
-
-            <p className="text-[10px] text-[#8E99A8]">
-              Open PowerShell on Windows or tablet, paste this command, and press Enter. It automatically downloads the 5.5MB bundle, extracts all platform directories to your Downloads, and if a USB drive is attached, mirrors the icons to your USB flash drive!
-            </p>
-
-            <pre className="p-3 bg-[#060709] border border-[#1C202B] rounded-xs text-[#E0FFFF] text-[10px] font-mono overflow-x-auto leading-relaxed">
-              {powershellCommand}
-            </pre>
-
-            {/* Bash / cURL snippet for Mac / Linux / Termux */}
-            <div className="pt-2 border-t border-[#1C202B] flex items-center justify-between">
-              <span className="text-[10px] text-[#6D7787]">
-                macOS / Linux / Android Termux command:
-              </span>
-              <button
-                onClick={() => handleCopy(bashCommand, 'bash')}
-                className="px-2 py-0.5 bg-[#141720] border border-[#262B38] text-[#8E99A8] hover:text-[#F5FFFA] rounded-xs text-[9px] cursor-pointer flex items-center gap-1"
-              >
-                {copiedType === 'bash' ? 'COPIED' : 'COPY CURL COMMAND'}
-              </button>
-            </div>
-          </div>
+          )}
 
           {/* Quick Platform Deployment Instructions */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[10px]">

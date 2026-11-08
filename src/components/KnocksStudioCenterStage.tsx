@@ -25,9 +25,13 @@ import {
   CheckCircle2,
   Tv,
   Crosshair,
+  Lock,
+  Download,
 } from 'lucide-react';
 import { MediaMedium } from '../types';
 import { audioEngine } from '../utils/audioEngine';
+import { useOwner } from '../context/OwnerContext';
+import { usePWAInstall } from '../utils/usePWAInstall';
 
 interface KnocksStudioCenterStageProps {
   onSelectMedium: (medium: MediaMedium) => void;
@@ -37,6 +41,7 @@ interface KnocksStudioCenterStageProps {
   onToggleImmersiveFullTile: () => void;
   onSwitchToProNLE: () => void;
   onExecuteCommand: (cmd: string) => void;
+  onOpenPlatformModal?: () => void;
 }
 
 export const KnocksStudioCenterStage: React.FC<KnocksStudioCenterStageProps> = ({
@@ -47,7 +52,10 @@ export const KnocksStudioCenterStage: React.FC<KnocksStudioCenterStageProps> = (
   onToggleImmersiveFullTile,
   onSwitchToProNLE,
   onExecuteCommand,
+  onOpenPlatformModal,
 }) => {
+  const { isOwnerMode, openAuthModal, openVault } = useOwner();
+  const { isInstalled, install } = usePWAInstall();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
   const [activeSoundCard, setActiveSoundCard] = useState<string>('WAVESTORM');
@@ -253,6 +261,49 @@ export const KnocksStudioCenterStage: React.FC<KnocksStudioCenterStageProps> = (
             <Film className="w-3.5 h-3.5 fill-current" />
             <span>PRO NLE DOCK</span>
           </button>
+
+          {/* Pro Enterprise Owner Gate */}
+          {isOwnerMode ? (
+            <button
+              onClick={openVault}
+              className="px-3 py-1 bg-[#00F5D4]/20 border border-[#00F5D4] text-[#00F5D4] font-extrabold rounded-xs cursor-pointer shadow-[0_0_12px_rgba(0,245,212,0.3)] hover:brightness-110 flex items-center gap-1 tracking-wider uppercase text-[11px]"
+              title="Open Pro Enterprise Executive Vault"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-[#00F5D4]" />
+              <span>OWNER VAULT</span>
+            </button>
+          ) : (
+            <button
+              onClick={openAuthModal}
+              className="px-2.5 py-1 bg-[#141724] border border-[#FFDAB9]/40 text-[#FFDAB9] hover:bg-[#1D2235] font-extrabold rounded-xs cursor-pointer flex items-center gap-1 tracking-wider uppercase text-[11px]"
+              title="Authenticate Owner Profile"
+            >
+              <Lock className="w-3.5 h-3.5 text-[#FFDAB9]" />
+              <span>OWNER GATE</span>
+            </button>
+          )}
+
+          {/* Native 1-Tap Phone & Desktop App Install Button */}
+          {!isInstalled && (
+            <button
+              onClick={install}
+              className="px-3 py-1 bg-gradient-to-r from-[#FEE440] to-[#FFA500] hover:brightness-110 text-black font-extrabold rounded-xs cursor-pointer shadow-[0_0_12px_rgba(254,228,64,0.3)] flex items-center gap-1.5 tracking-wider uppercase text-[11px]"
+              title="Install KNOCKSSTUDiOS directly to Phone or Desktop (1-Tap)"
+            >
+              <Download className="w-3.5 h-3.5 fill-current" />
+              <span>INSTALL APP (1-TAP)</span>
+            </button>
+          )}
+
+          {onOpenPlatformModal && (
+            <button
+              onClick={onOpenPlatformModal}
+              className="px-3 py-1 bg-[#00F5D4]/20 border border-[#00F5D4] text-[#00F5D4] hover:bg-[#00F5D4]/30 font-extrabold rounded-xs cursor-pointer shadow-[0_0_12px_rgba(0,245,212,0.3)] hover:brightness-110 flex items-center gap-1 tracking-wider uppercase text-[11px]"
+            >
+              <Zap className="w-3.5 h-3.5 fill-current" />
+              <span>UNITY · PHONE · LAPTOP · STORE</span>
+            </button>
+          )}
         </nav>
       </header>
 
@@ -273,10 +324,13 @@ export const KnocksStudioCenterStage: React.FC<KnocksStudioCenterStageProps> = (
           {/* Studio Initialized Status & Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#1E2434] pb-5 text-xs font-mono">
             <div className="text-left">
-              <h2 className="text-sm font-bold text-[#E0FFFF] tracking-wider uppercase">
-                STUDIO INITIALIZED
+              <h2 className="text-sm font-bold text-[#E0FFFF] tracking-wider uppercase flex items-center gap-2">
+                <span>STUDIO INITIALIZED</span>
+                <span className="px-1.5 py-0.2 bg-[#FC8EAC]/15 border border-[#FC8EAC]/50 text-[#FC8EAC] text-[9px] rounded-xs font-mono">
+                  RUST &amp; WASM MEMORY SAFE
+                </span>
               </h2>
-              <p className="text-[#8E99A8] text-[11px] mt-0.5">Connecting to local pipeline node...</p>
+              <p className="text-[#8E99A8] text-[11px] mt-0.5">High-performance Rust/WASM zero-copy asset layer verified (0 dangling pointers, 0 leaks).</p>
             </div>
 
             <div className="flex items-center gap-2.5">

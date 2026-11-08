@@ -7,6 +7,7 @@ import {
   FileText,
   Activity,
   Shield,
+  ShieldCheck,
   Layers,
   Cpu,
   Zap,
@@ -21,9 +22,16 @@ import {
   UploadCloud,
   FolderSync,
   Shuffle,
+  Gamepad2,
+  Dna,
+  Bot,
+  Lock,
+  Download,
 } from 'lucide-react';
 import { MediaMedium, DualEngineView, SubscriptionTierId, TelemetryState } from '../types';
 import { SUBSCRIPTION_TIERS } from '../utils/tierConfig';
+import { useOwner } from '../context/OwnerContext';
+import { usePWAInstall } from '../utils/usePWAInstall';
 
 interface TopTelemetryHubProps {
   activeMedium: MediaMedium;
@@ -42,6 +50,7 @@ interface TopTelemetryHubProps {
   isImmersiveFullTile: boolean;
   onToggleImmersiveFullTile: () => void;
   onOpenIconModal: () => void;
+  onOpenPlatformModal?: () => void;
   workspaceMode?: 'showcase' | 'pro_nle';
   onToggleWorkspaceMode?: () => void;
 }
@@ -63,22 +72,26 @@ export const TopTelemetryHub: React.FC<TopTelemetryHubProps> = ({
   isImmersiveFullTile,
   onToggleImmersiveFullTile,
   onOpenIconModal,
+  onOpenPlatformModal,
   workspaceMode = 'pro_nle',
   onToggleWorkspaceMode,
 }) => {
-
+  const { isOwnerMode, openAuthModal, openVault, ownerEmail } = useOwner();
+  const { isInstalled, install } = usePWAInstall();
   const tier = SUBSCRIPTION_TIERS[currentTier];
 
   const MEDIA_TABS: { id: MediaMedium; label: string; icon: React.ElementType }[] = [
-    { id: 'nch_suite', label: 'MASTER SUITE (40+ APPS)', icon: Sparkles },
-
+    { id: 'nch_suite', label: 'MASTER SUITE (32+)', icon: Sparkles },
+    { id: 'ai_battle', label: '3D CYBER GAME', icon: Gamepad2 },
+    { id: 'bioscience', label: 'BIOMOLECULAR', icon: Dna },
+    { id: 'gemini_ai', label: 'AI CINEMA', icon: Bot },
     { id: 'video', label: 'VIDEO PLUS', icon: Film },
     { id: 'audio', label: 'SOUND N (AUDIO)', icon: Music },
     { id: 'picture', label: 'PICTURE', icon: Image },
     { id: 'mesh3d', label: '3D & MESH', icon: Box },
     { id: 'content', label: 'STORY & SCRIPT', icon: FileText },
     { id: 'storage', label: 'UPLOADS & DL', icon: UploadCloud },
-    { id: 'cinema', label: '24/7 SHUFFLE CINEMA', icon: Shuffle },
+    { id: 'cinema', label: '24/7 SHUFFLE', icon: Shuffle },
   ];
 
   return (
@@ -101,7 +114,7 @@ export const TopTelemetryHub: React.FC<TopTelemetryHubProps> = ({
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className="font-extrabold text-base tracking-wider text-gradient-chrome">
-                KNOCKSSTUDiOS
+                KNOCKSSTUDiOS™ ©
               </span>
               <span className="text-[10px] text-[#FFDAB9] font-mono tracking-widest">[KNOCKS]</span>
               <span className="hidden lg:inline text-[9px] text-[#E0FFFF] border border-[#E0FFFF]/30 px-1.5 py-0.2 rounded-xs font-mono tracking-wider">
@@ -118,6 +131,17 @@ export const TopTelemetryHub: React.FC<TopTelemetryHubProps> = ({
             <span className="w-1.5 h-1.5 rounded-full bg-[#FC8EAC] animate-pulse" />
             <span>VORTEX 7 ICON</span>
           </button>
+
+          {onOpenPlatformModal && (
+            <button
+              onClick={onOpenPlatformModal}
+              className="hidden md:flex items-center gap-1.5 px-2 py-0.5 bg-[#00F5D4]/15 border border-[#00F5D4]/60 hover:bg-[#00F5D4]/25 text-[#00F5D4] rounded-xs text-[10px] font-mono cursor-pointer transition-all shadow-[0_0_8px_rgba(0,245,212,0.25)] font-bold uppercase"
+              title="Unity, Laptop, Phone, Web, Micro, Android Store & Marketplace"
+            >
+              <Zap className="w-3 h-3 fill-current" />
+              <span>UNITY · PHONE · LAPTOP · STORE</span>
+            </button>
+          )}
 
           <span className="text-[#3A4150]">|</span>
 
@@ -143,17 +167,18 @@ export const TopTelemetryHub: React.FC<TopTelemetryHubProps> = ({
           </div>
         </div>
 
-        {/* Center: Live Pipeline Route Status */}
-        <div className="hidden md:flex items-center gap-3 text-[11px] px-3 py-0.5 bg-[#14161D] border border-[#262B36] rounded-xs">
-          <Zap className="w-3 h-3 text-[#E0FFFF]" />
-          <span className="text-[#8E99A8]">ROUTE:</span>
-          <span className="text-[#F5FFFA] font-semibold">{telemetry.routeMode}</span>
+        {/* Center: Live Pipeline Route Status & Rust/WASM Memory Safe Layer */}
+        <div className="hidden md:flex items-center gap-2.5 text-[11px] px-3 py-1 bg-[#14161D] border border-[#262B36] rounded-xs shadow-inner">
+          <div className="flex items-center gap-1.5 px-1.5 py-0.5 bg-[#FC8EAC]/10 border border-[#FC8EAC]/40 rounded-xs text-[#FC8EAC] font-mono font-bold text-[10px]">
+            <ShieldCheck className="w-3 h-3 text-[#FC8EAC]" />
+            <span>RUST/WASM MEM-SAFE</span>
+          </div>
+          <span className="text-[#3A4150]">·</span>
+          <span className="text-[#8E99A8]">ZERO-COPY:</span>
+          <span className="text-[#E0FFFF] font-semibold">{telemetry.rustZeroCopyOps ?? 48} OPS</span>
           <span className="text-[#3A4150]">·</span>
           <span className="text-[#8E99A8]">WASM:</span>
           <span className="text-[#FFDAB9] font-semibold">{telemetry.wasmLatencyMs.toFixed(1)}ms</span>
-          <span className="text-[#3A4150]">·</span>
-          <span className="text-[#8E99A8]">COMPUTE:</span>
-          <span className="text-[#FC8EAC] font-semibold">{telemetry.computeLatencyMs}ms</span>
           <span className="text-[#3A4150]">·</span>
           <span className="text-[#8E99A8]">BUF:</span>
           <span className="text-[#E0FFFF]">{telemetry.memoryBufferMb} MB</span>
@@ -161,6 +186,40 @@ export const TopTelemetryHub: React.FC<TopTelemetryHubProps> = ({
 
         {/* Right: Subscription Tier Badge, Google Drive & HUD controls */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Pro Enterprise Owner Profile Gate */}
+          {isOwnerMode ? (
+            <button
+              onClick={openVault}
+              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono font-bold bg-[#00F5D4]/15 border border-[#00F5D4] text-[#00F5D4] rounded-xs cursor-pointer shadow-[0_0_12px_rgba(0,245,212,0.3)] hover:bg-[#00F5D4]/25 transition-all"
+              title={`Executive Owner Profile: ${ownerEmail} - Open Pro Enterprise Vault`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-[#00F5D4]" />
+              <span className="hidden sm:inline">OWNER PROFILE</span>
+              <span className="text-[9px] text-[#FFDAB9]">[PRO ENTERPRISE]</span>
+            </button>
+          ) : (
+            <button
+              onClick={openAuthModal}
+              className="flex items-center gap-1.5 px-2 py-1 text-xs font-mono border border-[#FFDAB9]/40 bg-[#161922] text-[#FFDAB9] rounded-xs transition-all cursor-pointer hover:bg-[#1F2432]"
+              title="Enterprise Owner Authentication Gate"
+            >
+              <Lock className="w-3 h-3 text-[#FFDAB9]" />
+              <span className="hidden sm:inline">OWNER ACCESS</span>
+            </button>
+          )}
+
+          {/* Native 1-Tap App Install Button */}
+          {!isInstalled && (
+            <button
+              onClick={install}
+              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono font-bold bg-[#FEE440]/15 border border-[#FEE440]/60 text-[#FEE440] hover:bg-[#FEE440]/25 rounded-xs cursor-pointer transition-all shadow-[0_0_8px_rgba(254,228,64,0.2)]"
+              title="Install KNOCKSSTUDiOS directly to Phone or Desktop (1-Tap)"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">INSTALL APP</span>
+            </button>
+          )}
+
           {onToggleWorkspaceMode && (
             <button
               onClick={onToggleWorkspaceMode}

@@ -72,8 +72,8 @@ export const ThreeDViewport: React.FC<ThreeDViewportProps> = ({
     const ambientLight = new THREE.AmbientLight(0x0e141a, 2.5);
     scene.add(ambientLight);
 
-    // Key Light (Fresnel Peach #FFDAB9)
-    const keyLight = new THREE.DirectionalLight(0xffdab9, 3.2);
+    // Key Light (Titanium Gold #FFD700)
+    const keyLight = new THREE.DirectionalLight(0xffd700, 3.2);
     keyLight.position.set(5, 8, 4);
     scene.add(keyLight);
 

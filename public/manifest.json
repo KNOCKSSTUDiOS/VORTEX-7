@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "KNOCKSSTUDiOS // VORTEX 7 CINEMA SUITE",
-  "short_name": "Vortex 7",
-  "description": "KNOCKSSTUDiOS Hollywood Motion Pictures & Tempest Vortex 7 FX Workstation",
+  "name": "KNOCKSSTUDiOS™ © // HOLLYWOOD MOTiON PiCTURES",
+  "short_name": "KNOCKSSTUDiO",
+  "description": "KNOCKSSTUDiOS™ © Hollywood Motion Pictures multi-platform Cinema FX Suite. Unity, Laptop, Phone, Web, Micro, Android Store & Marketplace Ready.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

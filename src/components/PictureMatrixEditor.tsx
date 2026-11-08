@@ -415,7 +415,7 @@ export const PictureMatrixEditor: React.FC<PictureMatrixEditorProps> = ({
                   { id: 'none', label: 'FLAT LINEAR (DEFAULT)', desc: 'Standard rec.709 neutral response' },
                   { id: 'kodachrome', label: 'KODACHROME 64 (1974)', desc: 'Warm saturated reds, deep obsidian blacks' },
                   { id: 'technicolor', label: 'TECHNICOLOR 3-STRIP', desc: 'Vibrant primaries with emerald green split' },
-                  { id: 'cyberpunk_fresnel', label: 'CYBERPUNK FRESNEL PEACH', desc: 'Peach/pink bioluminescence highlights' },
+                  { id: 'cyberpunk_gold', label: 'CYBERPUNK TITANIUM GOLD', desc: 'Hollywood gold & emerald cyber highlights' },
                   { id: 'noir_high_contrast', label: 'NOIR ARCHIVE HIGH-CONTRAST', desc: 'Hard silhouetted shadows and silver highlights' },
                 ].map((item) => (
                   <div
@@ -423,11 +423,11 @@ export const PictureMatrixEditor: React.FC<PictureMatrixEditorProps> = ({
                     onClick={() => onChangeColorGrade({ vintageMatrix: item.id as any })}
                     className={`p-2 rounded-xs border cursor-pointer transition-colors ${
                       colorGrade.vintageMatrix === item.id
-                        ? 'bg-[#202534] border-[#FFDAB9] text-[#F5FFFA]'
+                        ? 'bg-[#202534] border-[#FFD700] text-[#F5FFFA]'
                         : 'bg-[#141720] border-[#222736] text-[#8E99A8] hover:border-[#384055]'
                     }`}
                   >
-                    <span className="font-bold block text-[#FFDAB9]">{item.label}</span>
+                    <span className="font-bold block text-[#FFD700]">{item.label}</span>
                     <span className="text-[10px] text-[#8E99A8]">{item.desc}</span>
                   </div>
                 ))}

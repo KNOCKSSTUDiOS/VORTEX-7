@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Sliders,
   Terminal,
@@ -8,15 +8,22 @@ import {
   Activity,
   HardDrive,
   CheckCircle,
+  CheckCircle2,
   Clock,
   Send,
   Trash2,
   Film,
   Download,
   Share2,
+  ShieldCheck,
+  Copy,
+  ChevronDown,
+  Lock,
 } from 'lucide-react';
 import { TerminalLog, TelemetryState, ExportPreset } from '../types';
-import { ExportPresetsModal } from './ExportPresetsModal';
+import { ExportPresetsModal, FACTORY_PRESETS } from './ExportPresetsModal';
+import { rustWasmPipeline } from '../utils/rustWasmMemorySafePipeline';
+import { useOwner } from '../context/OwnerContext';
 
 interface RightInspectorPanelProps {
   telemetry: TelemetryState;
@@ -34,6 +41,15 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
   const [activeTab, setActiveTab] = useState<'inspector' | 'cli' | 'fabricator'>('cli');
   const [commandInput, setCommandInput] = useState('');
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const logContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Available Presets & Quick Apply State
+  const [availablePresets, setAvailablePresets] = useState<ExportPreset[]>(FACTORY_PRESETS);
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('preset_imax_master');
+  const [quickApplyNotice, setQuickApplyNotice] = useState<string | null>(null);
+  const [isPowerShellCopied, setIsPowerShellCopied] = useState<boolean>(false);
+  const { isOwnerMode, openAuthModal } = useOwner();
+
   const [activeExportPreset, setActiveExportPreset] = useState<ExportPreset>({
     id: 'preset_imax_master',
     name: 'IMAX 1.43:1 Master DCI Archive',
@@ -54,11 +70,68 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
   const [opacity, setOpacity] = useState(100);
   const [scale, setScale] = useState(100);
 
+  // Load custom saved presets from localStorage
+  useEffect(() => {
+    try {
+      const rawSaved = localStorage.getItem('knocks_studio_export_presets_v1');
+      if (rawSaved) {
+        const parsed = JSON.parse(rawSaved) as ExportPreset[];
+        const combined = [...FACTORY_PRESETS];
+        parsed.forEach((p) => {
+          if (!combined.some((c) => c.id === p.id)) {
+            combined.push(p);
+          }
+        });
+        setAvailablePresets(combined);
+      }
+      const rawActive = localStorage.getItem('knocks_active_export_preset_v1');
+      if (rawActive) {
+        const parsedActive = JSON.parse(rawActive) as ExportPreset;
+        setActiveExportPreset(parsedActive);
+        setSelectedPresetId(parsedActive.id);
+      }
+    } catch {
+      // Fallback
+    }
+  }, [isExportModalOpen]);
+
+  // Quick Apply Handler
+  const handleQuickApply = (presetId?: string) => {
+    const targetId = presetId || selectedPresetId;
+    const target = availablePresets.find((p) => p.id === targetId);
+    if (!target) return;
+    setActiveExportPreset(target);
+    setSelectedPresetId(target.id);
+    localStorage.setItem('knocks_active_export_preset_v1', JSON.stringify(target));
+    const verify = rustWasmPipeline.verifyAssetOperation(
+      'quick_apply_preset',
+      target.name,
+      'video',
+      16777216
+    );
+    onExecuteCommand(
+      `quick apply preset: "${target.name}" [${target.codec} | ${target.resolution} | ${target.container}] -> ${verify.borrowCheck}`
+    );
+    setQuickApplyNotice(`Applied "${target.name}"`);
+    setTimeout(() => setQuickApplyNotice(null), 3000);
+  };
+
+  // Auto-scroll logs when new entries appear
+  useEffect(() => {
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    }
+  }, [logs]);
+
   const handleCommandSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = commandInput.trim();
     if (!trimmed) return;
-    if (trimmed.toLowerCase() === 'presets' || trimmed.toLowerCase() === 'export presets' || trimmed.toLowerCase() === 'export --presets') {
+    if (
+      trimmed.toLowerCase() === 'presets' ||
+      trimmed.toLowerCase() === 'export presets' ||
+      trimmed.toLowerCase() === 'export --presets'
+    ) {
       setIsExportModalOpen(true);
       onExecuteCommand('export presets [modal launched]');
     } else {
@@ -68,9 +141,10 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
   };
 
   const QUICK_COMMANDS = [
-    'export presets',
+    'rust-verify',
     'tempest status',
     'route --optimize',
+    'export presets',
     'render --fps 60',
     'export --format prores',
     'wasm benchmark',
@@ -137,13 +211,19 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
                 <Terminal className="w-3.5 h-3.5 text-[#E0FFFF]" />
                 LOCAL PYTHON / RUST CLI
               </span>
-              <button
-                onClick={onClearLogs}
-                className="text-[#6D7787] hover:text-[#FC8EAC] cursor-pointer"
-                title="Clear Logs"
-              >
-                <Trash2 className="w-3 h-3" />
-              </button>
+              <div className="flex items-center gap-1.5">
+                <span className="px-1.5 py-0.5 bg-[#FC8EAC]/10 border border-[#FC8EAC]/40 text-[#FC8EAC] text-[9px] font-mono rounded-xs flex items-center gap-1">
+                  <ShieldCheck className="w-2.5 h-2.5 text-[#FC8EAC]" />
+                  RUST MEMORY SAFE
+                </span>
+                <button
+                  onClick={onClearLogs}
+                  className="text-[#6D7787] hover:text-[#FC8EAC] cursor-pointer"
+                  title="Clear Logs"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
             </div>
 
             {/* Quick Command Pills */}
@@ -167,7 +247,10 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
             </div>
 
             {/* Terminal Output Log Area */}
-            <div className="flex-1 bg-[#07080B] border border-[#1E232F] rounded-xs p-2 overflow-y-auto space-y-1 font-mono text-[11px] leading-relaxed">
+            <div
+              ref={logContainerRef}
+              className="flex-1 bg-[#07080B] border border-[#1E232F] rounded-xs p-2 overflow-y-auto space-y-1 font-mono text-[11px] leading-relaxed scroll-smooth"
+            >
               <div className="text-[#6D7787]">
                 KNOCKSSTUDiOS CLI PIPE v4.2 [Rust/WASM Core Active]
               </div>
@@ -208,6 +291,54 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
                 <Send className="w-3 h-3" />
               </button>
             </form>
+
+            {/* Pro Enterprise Owner Protected Runner Card */}
+            {isOwnerMode ? (
+              <div className="bg-[#0A0D15] border border-emerald-500/40 p-2 rounded-xs space-y-1.5 text-[10px]">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[#00F5D4] flex items-center gap-1">
+                    <Terminal className="w-3 h-3 text-[#3A86FF]" />
+                    POWERSHELL APP LAUNCHER [OWNER]
+                  </span>
+                  <button
+                    onClick={() => {
+                      const activeUrl = typeof window !== 'undefined' && window.location.origin && !window.location.origin.includes('null')
+                        ? window.location.origin
+                        : 'https://ais-dev-qf2ysbvycsvzjyxe4bl6zx-187094173481.us-west2.run.app';
+                      const psCmd = `Start-Process "${activeUrl}"`;
+                      navigator.clipboard.writeText(psCmd);
+                      setIsPowerShellCopied(true);
+                      onExecuteCommand('copied universal PowerShell launcher command to clipboard');
+                      setTimeout(() => setIsPowerShellCopied(false), 2500);
+                    }}
+                    className="text-[9px] text-[#FFDAB9] hover:underline cursor-pointer flex items-center gap-1"
+                    title="Copy PowerShell command"
+                  >
+                    <Copy className="w-2.5 h-2.5" />
+                    <span>{isPowerShellCopied ? 'COPIED!' : 'COPY PS CMD'}</span>
+                  </button>
+                </div>
+                <div className="text-[9px] text-gray-400">
+                  Run this command in Windows PowerShell to launch directly in your default browser:
+                </div>
+                <code className="text-[#A6B8D4] block font-mono text-[9px] truncate bg-[#05070B] p-1.5 rounded border border-[#161B28] select-all">
+                  Start-Process "{typeof window !== 'undefined' && window.location.origin && !window.location.origin.includes('null') ? window.location.origin : 'https://ais-dev-qf2ysbvycsvzjyxe4bl6zx-187094173481.us-west2.run.app'}"
+                </code>
+              </div>
+            ) : (
+              <div className="bg-[#0A0D15]/60 border border-[#1E2536] p-2 rounded-xs flex items-center justify-between text-[10px]">
+                <div className="flex items-center gap-1.5 text-gray-400">
+                  <Lock className="w-3 h-3 text-[#FFDAB9]" />
+                  <span className="text-[9px]">OWNER RUNNER LOCKED</span>
+                </div>
+                <button
+                  onClick={openAuthModal}
+                  className="px-2 py-0.5 bg-[#1B2236] hover:bg-[#25304B] border border-[#2B3857] text-[#FFDAB9] rounded-xs text-[9px] font-bold cursor-pointer"
+                >
+                  OWNER UNLOCK
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -288,8 +419,52 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
             {/* Export & Delivery Presets Section */}
             <div className="pt-2 border-t border-[#212634] space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-[#8E99A8] block font-bold">EXPORT DELIVERY PRESET</span>
-                <span className="text-[9px] text-[#FFDAB9] uppercase font-mono">{activeExportPreset.category.replace('_', ' ')}</span>
+                <span className="text-[10px] text-[#00F5D4] block font-bold flex items-center gap-1">
+                  <Zap className="w-3 h-3 text-[#00F5D4]" />
+                  <span>QUICK APPLY EXPORT PRESET</span>
+                </span>
+                {quickApplyNotice ? (
+                  <span className="text-[9px] text-[#00F5D4] font-bold animate-pulse">
+                    ✓ APPLIED!
+                  </span>
+                ) : (
+                  <span className="text-[9px] text-[#FFDAB9] uppercase font-mono">
+                    {availablePresets.length} PRESETS
+                  </span>
+                )}
+              </div>
+
+              {/* Quick Apply Dropdown Menu & Action Button */}
+              <div className="p-2 bg-[#0A0D15] border border-[#242C3D] rounded-xs space-y-1.5 shadow-inner">
+                <div className="flex gap-1.5">
+                  <select
+                    value={selectedPresetId}
+                    onChange={(e) => {
+                      setSelectedPresetId(e.target.value);
+                      handleQuickApply(e.target.value);
+                    }}
+                    className="flex-1 bg-[#121520] border border-[#2E374D] px-2 py-1.5 text-[#F5FFFA] rounded-xs text-[10px] outline-none focus:border-[#00F5D4] cursor-pointer"
+                  >
+                    {availablePresets.map((preset) => (
+                      <option key={preset.id} value={preset.id}>
+                        {preset.name} ({preset.container})
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    onClick={() => handleQuickApply()}
+                    className="px-2.5 py-1.5 bg-[#00F5D4] hover:bg-[#20D2B8] text-black font-black text-[10px] rounded-xs cursor-pointer shadow-[0_0_8px_rgba(0,245,212,0.3)] transition-all flex items-center gap-1 shrink-0"
+                    title="Quick Apply selected preset immediately"
+                  >
+                    <CheckCircle2 className="w-3 h-3" />
+                    <span>APPLY</span>
+                  </button>
+                </div>
+                <div className="text-[9px] text-[#8E99A8] flex items-center justify-between px-0.5">
+                  <span>Codec: {availablePresets.find(p => p.id === selectedPresetId)?.codec || 'ProRes'}</span>
+                  <span className="text-[#00F5D4]">{availablePresets.find(p => p.id === selectedPresetId)?.resolution.split(' ')[0] || '4K'}</span>
+                </div>
               </div>
 
               {/* Active preset summary card */}

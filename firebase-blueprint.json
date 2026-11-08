@@ -1,0 +1,35 @@
+{
+  "entities": {
+    "UserProfile": {
+      "collection": "users",
+      "fields": {
+        "uid": { "type": "string", "required": true },
+        "email": { "type": "string", "required": true },
+        "role": { "type": "string", "enum": ["owner", "executive", "guest"], "required": true },
+        "displayName": { "type": "string" },
+        "updatedAt": { "type": "timestamp" }
+      }
+    },
+    "Project": {
+      "collection": "projects",
+      "fields": {
+        "id": { "type": "string", "required": true },
+        "ownerUid": { "type": "string", "required": true },
+        "title": { "type": "string", "required": true },
+        "timeline": { "type": "array" },
+        "isProEnterprise": { "type": "boolean" },
+        "updatedAt": { "type": "timestamp" }
+      }
+    },
+    "StudioPreset": {
+      "collection": "presets",
+      "fields": {
+        "id": { "type": "string", "required": true },
+        "name": { "type": "string", "required": true },
+        "resolution": { "type": "string" },
+        "fps": { "type": "number" },
+        "codec": { "type": "string" }
+      }
+    }
+  }
+}
